@@ -28,6 +28,10 @@ class Benchmark(object):
         self.tags = [tag.decode('utf-8') for tag in self.tags]
         self.title = self.title.decode('utf-8')
 
+    def matches(self, xpath_query):
+        return any(xpath_query(files['etree'])
+                   for files in self.get_files().values())
+
     def get_files(self):
         if not self._files:
             keys = {key.key: key for key in s3_bucket.list(prefix=self.name)}

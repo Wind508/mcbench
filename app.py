@@ -1,5 +1,3 @@
-from multiprocessing import pool
-
 import flask
 import lxml.etree
 
@@ -34,16 +32,12 @@ def files(name):
 
 @app.route('/search', methods=['GET'])
 def search():
-    query = flask.request.args.get('query')
-    find = lxml.etree.XPath(query)
-    def match(benchmark):
-        results = {}
-        for base, files in benchmark.get_files():
-            results.setdefault(base, []).append(find(files['etree']))
-        return results
+    query_string = flask.request.args.get('query')
+    query = lxml.etree.XPath(query_string)
 
-    thread_pool = pool.ThreadPool(processes=10)
-    results = thread_pool.map(match, mcbench_client.get_all_benchmarks())
+    all_benchmarks = mcbench_client.get_all_benchmarks()
+    matching_benchmarks = [b for b in all_benchmarks if b.matches(query)]
+    return flask.render_template('list.html', benchmarks=matching_benchmarks)
 
 if __name__ == "__main__":
     app.run(debug=True)
