@@ -10,7 +10,7 @@ mcbench_client = mcbench.client.from_redis_url(app.config['REDIS_URL'])
 
 @app.route('/', methods=['GET'])
 def index():
-    return 'hello, world'
+    return flask.render_template('index.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
