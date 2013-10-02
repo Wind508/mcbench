@@ -33,7 +33,11 @@ def files(name):
 @app.route('/search', methods=['GET'])
 def search():
     query_string = flask.request.args.get('query')
-    query = lxml.etree.XPath(query_string)
+    try:
+        query = lxml.etree.XPath(query_string)
+    except lxml.etree.XPathSyntaxError as e:
+        flask.flash('XPath syntax error: %s' % e.msg)
+        return flask.redirect(flask.url_for('index'))
 
     all_benchmarks = mcbench_client.get_all_benchmarks()
     matching_benchmarks = [b for b in all_benchmarks if b.matches(query)]
