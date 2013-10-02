@@ -5,6 +5,7 @@ import redis
 
 s3_bucket = boto.connect_s3().get_bucket('mclab.mcbench')
 
+
 class Benchmark(object):
     def __init__(self, author, author_url, date_submitted, date_updated,
                  name, summary, tags, title, url):
@@ -18,6 +19,8 @@ class Benchmark(object):
         self.title = title
         self.url = url
 
+        self._files = {}
+
     def decode_utf8(self):
         self.author = self.author.decode('utf-8')
         self.summary = self.summary.decode('utf-8')
@@ -25,18 +28,18 @@ class Benchmark(object):
         self.title = self.title.decode('utf-8')
 
     def get_files(self):
-        files = {}
-        keys = {key.key: key for key in s3_bucket.list(prefix=self.name)}
-        for m_key in keys:
-            if not m_key.endswith('.m'):
-                continue
-            base = os.path.splitext(m_key)[0]
-            xml_key = '%s.xml' % base
-            files[base] = {
-                'm': keys[m_key].get_contents_as_string(),
-                'xml': keys[xml_key].get_contents_as_string(),
-            }
-        return files
+        if not self._files:
+            keys = {key.key: key for key in s3_bucket.list(prefix=self.name)}
+            for m_key in keys:
+                if not m_key.endswith('.m'):
+                    continue
+                base = os.path.splitext(m_key)[0]
+                xml_key = '%s.xml' % base
+                self._files[base] = {
+                    'm': keys[m_key].get_contents_as_string(),
+                    'xml': keys[xml_key].get_contents_as_string(),
+                }
+        return self._files
 
     def __repr__(self):
         return '<Benchmark: %s>' % self.name
@@ -54,14 +57,19 @@ class McBenchClient(object):
     def __init__(self, redis):
         self.redis = redis
 
+        self._benchmark_cache = {}
+
     def get_benchmark_by_id(self, benchmark_id):
-        data = self.redis.hgetall('benchmark:%s' % benchmark_id)
-        if not data:
-            raise BenchmarkDoesNotExist
-        benchmark = Benchmark(**data)
-        benchmark.tags = benchmark.tags.split(',')
-        benchmark.decode_utf8()
-        return benchmark
+        benchmark_id = str(benchmark_id)
+        if benchmark_id not in self._benchmark_cache:
+            data = self.redis.hgetall('benchmark:%s' % benchmark_id)
+            if not data:
+                raise BenchmarkDoesNotExist
+            benchmark = Benchmark(**data)
+            benchmark.tags = benchmark.tags.split(',')
+            benchmark.decode_utf8()
+            self._benchmark_cache[benchmark_id] = benchmark
+        return self._benchmark_cache[benchmark_id]
 
     def get_benchmark_by_name(self, name):
         benchmark_id = self.redis.get('name:%s:id' % name)
