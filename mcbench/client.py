@@ -4,15 +4,21 @@ import redis
 class Benchmark(object):
     def __init__(self, author, author_url, date_submitted, date_updated,
                  name, summary, tags, title, url):
-        self.author = author.decode('utf-8')
+        self.author = author
         self.author_url = author_url
         self.date_submitted = date_submitted
         self.date_updated = date_updated
-        self.name = name.decode('utf-8')
-        self.summary = summary.decode('utf-8')
+        self.name = name
+        self.summary = summary
         self.tags = tags
-        self.title = title.decode('utf-8')
+        self.title = title
         self.url = url
+
+    def decode_utf8(self):
+        self.author = self.author.decode('utf-8')
+        self.summary = self.summary.decode('utf-8')
+        self.tags = [tag.decode('utf-8') for tag in self.tags]
+        self.title = self.title.decode('utf-8')
 
     def __repr__(self):
         return '<Benchmark: %s>' % self.name
@@ -36,6 +42,7 @@ class McBenchClient(object):
             raise BenchmarkDoesNotExist
         benchmark = Benchmark(**data)
         benchmark.tags = benchmark.tags.split(',')
+        benchmark.decode_utf8()
         return benchmark
 
     def get_benchmark_by_name(self, name):
