@@ -4,14 +4,14 @@ import redis
 class Benchmark(object):
     def __init__(self, author, author_url, date_submitted, date_updated,
                  name, summary, tags, title, url):
-        self.author = author
+        self.author = author.decode('utf-8')
         self.author_url = author_url
         self.date_submitted = date_submitted
         self.date_updated = date_updated
-        self.name = name
-        self.summary = summary
+        self.name = name.decode('utf-8')
+        self.summary = summary.decode('utf-8')
         self.tags = tags
-        self.title = title
+        self.title = title.decode('utf-8')
         self.url = url
 
     def __repr__(self):
@@ -34,7 +34,9 @@ class McBenchClient(object):
         data = self.redis.hgetall('benchmark:%s' % benchmark_id)
         if not data:
             raise BenchmarkDoesNotExist
-        return Benchmark(**data)
+        benchmark = Benchmark(**data)
+        benchmark.tags = benchmark.tags.split(',')
+        return benchmark
 
     def get_benchmark_by_name(self, name):
         benchmark_id = self.redis.get('name:%s:id' % name)
@@ -51,6 +53,8 @@ class McBenchClient(object):
         if benchmark_id is not None:
             raise BenchmarkAlreadyExists
         benchmark_id = self.redis.incr('global:next_benchmark_id')
+        benchmark_dict = vars(benchmark)
+        benchmark_dict['tags'] = ','.join(benchmark_dict['tags'])
         self.redis.set('name:%s:id' % benchmark.name, benchmark_id)
         self.redis.hmset('benchmark:%s' % benchmark_id, vars(benchmark))
 

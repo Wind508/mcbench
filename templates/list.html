@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block extrahead %}
+<style>
+.benchmark .title { font-size: 1.8em; }
+.benchmark .author { font-size: 0.9em; margin-left: 5px; }
+.benchmark .tags { font-size: 0.9em; }
+.benchmark hr { margin: 0 auto 10px auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="span12">
+    {% for benchmark in benchmarks %}
+    <div class="benchmark">
+      <p>
+      <span class="title"><a href="{{ benchmark.url }}">{{ benchmark.title }}</a></span>
+      <span class="author">from <a href="{{ benchmark.author_url }}">{{ benchmark.author }}</a></span>
+      </p>
+      <hr>
+      <p class="summary">{{ benchmark.summary }}</p>
+      <p class="tags">tagged {{ benchmark.tags|join(', ') }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

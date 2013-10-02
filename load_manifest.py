@@ -25,7 +25,6 @@ def main():
     with open(os.path.expanduser(args.manifest)) as f:
         manifest = json.load(f)
         for project in manifest['projects']:
-            project['tags'] = ','.join(project['tags'])
             benchmark = mcbench.client.Benchmark(**project)
             mcbench_client.insert_benchmark(benchmark)
 
