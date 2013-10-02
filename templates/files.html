@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <ul class="nav nav-tabs" id="files-tabs">
+  {% for file in files %}
+    <li><a href="#{{ loop.index }}">{{ file }}</a></li>
+  {% endfor %}
+  </ul>
+
+  <div class="tab-content">
+  {% for file in files %}
+    <div class="tab-pane" id="{{ loop.index }}">
+      <ul class="nav nav-tabs" id="{{ loop.index }}-languages">
+      <li><a href="#{{ loop.index }}-m">Matlab</a></li>
+      <li><a href="#{{ loop.index }}-xml">XML</a></li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane" id="{{ loop.index }}-m">
+          <pre>
+{{ files[file]['m'] }}
+          </pre>
+        </div>
+        <div class="tab-pane" id="{{ loop.index }}-xml">
+          <pre>
+{{ files[file]['xml'] }}
+          </pre>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+$(function() {
+  $('#files-tabs a').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+    $('a[href="' + $(this).attr('href') + '-m"]').trigger('click');
+  });
+  $('[id$="-languages"] a').click(function(e) {
+    e.preventDefault();
+    $(this).tab('show');
+  });
+  $('#files-tabs a:first').trigger('click');
+});
+</script>
+{% endblock %}

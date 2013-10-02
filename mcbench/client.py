@@ -1,6 +1,7 @@
 import os
 
 import boto
+import lxml.etree
 import redis
 
 s3_bucket = boto.connect_s3().get_bucket('mclab.mcbench')
@@ -35,11 +36,16 @@ class Benchmark(object):
                     continue
                 base = os.path.splitext(m_key)[0]
                 xml_key = '%s.xml' % base
+                m_contents = keys[m_key].get_contents_as_string()
+                xml_contents = keys[xml_key].get_contents_as_string()
+                xml_parsed = lxml.etree.XML(xml_contents)
                 self._files[base] = {
-                    'm': keys[m_key].get_contents_as_string(),
-                    'xml': keys[xml_key].get_contents_as_string(),
+                    'm': m_contents,
+                    'xml': xml_contents,
+                    'etree': xml_parsed,
                 }
         return self._files
+
 
     def __repr__(self):
         return '<Benchmark: %s>' % self.name
