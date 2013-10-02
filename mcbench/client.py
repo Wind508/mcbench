@@ -1,5 +1,9 @@
+import os
+
+import boto
 import redis
 
+s3_bucket = boto.connect_s3().get_bucket('mclab.mcbench')
 
 class Benchmark(object):
     def __init__(self, author, author_url, date_submitted, date_updated,
@@ -19,6 +23,20 @@ class Benchmark(object):
         self.summary = self.summary.decode('utf-8')
         self.tags = [tag.decode('utf-8') for tag in self.tags]
         self.title = self.title.decode('utf-8')
+
+    def get_files(self):
+        files = {}
+        keys = {key.key: key for key in s3_bucket.list(prefix=self.name)}
+        for m_key in keys:
+            if not m_key.endswith('.m'):
+                continue
+            base = os.path.splitext(m_key)[0]
+            xml_key = '%s.xml' % base
+            files[base] = {
+                'm': keys[m_key].get_contents_as_string(),
+                'xml': keys[xml_key].get_contents_as_string(),
+            }
+        return files
 
     def __repr__(self):
         return '<Benchmark: %s>' % self.name
