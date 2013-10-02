@@ -24,7 +24,7 @@ class McBenchClient(object):
     def insert_benchmark(self, benchmark):
         benchmark_id = self.redis.incr('global:next_benchmark_id')
         self.redis.set('benchmark:%s:id' % benchmark.name, benchmark_id)
-        self.redis.hmset('benchmark:%s' % benchmark_id, **benchmark._asdict())
+        self.redis.hmset('benchmark:%s' % benchmark_id, benchmark._asdict())
 
 
 def from_redis_url(redis_url):
