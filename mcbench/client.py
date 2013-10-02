@@ -1,10 +1,16 @@
 import os
 
 import boto
+import chardet
 import lxml.etree
 import redis
 
 s3_bucket = boto.connect_s3().get_bucket('mclab.mcbench')
+
+
+def fix_utf8(s):
+    encoding = chardet.detect(s)['encoding']
+    return unicode(s.decode(encoding))
 
 
 class Benchmark(object):
@@ -44,7 +50,7 @@ class Benchmark(object):
                 xml_contents = keys[xml_key].get_contents_as_string()
                 xml_parsed = lxml.etree.XML(xml_contents)
                 self._files[base] = {
-                    'm': m_contents,
+                    'm': fix_utf8(m_contents),
                     'xml': xml_contents,
                     'etree': xml_parsed,
                 }
