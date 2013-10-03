@@ -33,8 +33,8 @@ def benchmark_list():
     return flask.render_template('list.html', benchmarks=benchmarks)
 
 
-@app.route('/files/<name>', methods=['GET'])
-def files(name):
+@app.route('/benchmark/<name>', methods=['GET'])
+def benchmark(name):
     benchmark = mcbench_client.get_benchmark_by_name(name)
 
     matching_lines = collections.defaultdict(list)
@@ -45,7 +45,7 @@ def files(name):
 
     print matching_lines
     return flask.render_template(
-        'files.html',
+        'benchmark.html',
         benchmark=benchmark,
         hl_lines=matching_lines,
         files=benchmark.get_files()
