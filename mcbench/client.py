@@ -1,3 +1,4 @@
+import collections
 import os
 
 import boto
@@ -35,8 +36,12 @@ class Benchmark(object):
         self.title = self.title.decode('utf-8')
 
     def matches(self, xpath_query):
-        return any(xpath_query(files['etree'])
-                   for files in self.get_files().values())
+        matching_lines = collections.defaultdict(list)
+        for base, files in self.get_files().items():
+            matches = xpath_query(files['etree'])
+            if matches:
+                matching_lines[base] = [e.get('line') for e in matches]
+        return matching_lines
 
     def get_files(self):
         if not self._files:

@@ -15,7 +15,7 @@
     {% for benchmark in benchmarks %}
     <div class="benchmark">
       <p>
-      <span class="title"><a href="{{ url_for('files', name=benchmark.name) }}">{{ benchmark.title }}</a></span>
+      <span class="title"><a href="{{ url_for('files', name=benchmark.name, query=request.values.get('query', '')) }}">{{ benchmark.title }}</a></span>
       <span class="author">from <a href="{{ benchmark.author_url }}">{{ benchmark.author }}</a></span>
       </p>
       <hr>

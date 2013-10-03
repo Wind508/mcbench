@@ -1,14 +1,17 @@
 import pygments.formatters
 import pygments.lexers
 
-HTML_FORMATTER = pygments.formatters.HtmlFormatter()
 MATLAB_LEXER = pygments.lexers.MatlabLexer()
 XML_LEXER = pygments.lexers.XmlLexer()
 
 
-def matlab(code):
-    return pygments.highlight(code, MATLAB_LEXER, HTML_FORMATTER)
+def matlab(code, lines=None):
+    if lines is None:
+        lines = []
+    formatter = pygments.formatters.HtmlFormatter(hl_lines=lines)
+    return pygments.highlight(code, MATLAB_LEXER, formatter)
 
 
 def xml(code):
-    return pygments.highlight(code, XML_LEXER, HTML_FORMATTER)
+    formatter = pygments.formatters.HtmlFormatter()
+    return pygments.highlight(code, XML_LEXER, formatter)

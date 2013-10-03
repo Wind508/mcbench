@@ -1,3 +1,4 @@
+import collections
 import flask
 import lxml.etree
 
@@ -18,33 +19,37 @@ def index():
 
 
 @app.route('/list', methods=['GET'])
-def list():
+def benchmark_list():
     benchmarks = mcbench_client.get_all_benchmarks()
+
+    query_string = flask.request.args.get('query')
+    if query_string:
+        try:
+            query = lxml.etree.XPath(query_string)
+        except lxml.etree.XPathSyntaxError as e:
+            flask.flash('XPath syntax error: %s' % e.msg)
+            return flask.redirect(flask.url_for('index'))
+        benchmarks = [b for b in benchmarks if b.matches(query)]
     return flask.render_template('list.html', benchmarks=benchmarks)
 
 
 @app.route('/files/<name>', methods=['GET'])
 def files(name):
     benchmark = mcbench_client.get_benchmark_by_name(name)
+
+    matching_lines = collections.defaultdict(list)
+    query_string = flask.request.args.get('query')
+    if query_string:
+        query = lxml.etree.XPath(query_string)
+        matching_lines = benchmark.matches(query)
+
+    print matching_lines
     return flask.render_template(
         'files.html',
         benchmark=benchmark,
+        hl_lines=matching_lines,
         files=benchmark.get_files()
     )
-
-
-@app.route('/search', methods=['GET'])
-def search():
-    query_string = flask.request.args.get('query')
-    try:
-        query = lxml.etree.XPath(query_string)
-    except lxml.etree.XPathSyntaxError as e:
-        flask.flash('XPath syntax error: %s' % e.msg)
-        return flask.redirect(flask.url_for('index'))
-
-    all_benchmarks = mcbench_client.get_all_benchmarks()
-    matching_benchmarks = [b for b in all_benchmarks if b.matches(query)]
-    return flask.render_template('list.html', benchmarks=matching_benchmarks)
 
 if __name__ == "__main__":
     app.run(debug=True)

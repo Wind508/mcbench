@@ -6,6 +6,18 @@
 
 {% block content %}
 <div class="container">
+  <div class="row">
+    <div class="col-lg-12">
+      <h1>Try an XPath query against this benchmark.</h1>
+      <form method="get" action="{{ url_for('files', name=benchmark.name) }}" class="form-inline">
+        <input name="query" type="search" class="form-control input-lg" style="width:80%;" value="{{ request.args.get('query', '') }}" />
+        <button type="submit" class="btn btn-default btn-lg">Search</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="container">
   <ul class="nav nav-tabs" id="files-tabs">
   {% for file in files %}
     <li><a href="#{{ loop.index }}">{{ file }}</a></li>
@@ -22,7 +34,7 @@
 
       <div class="tab-content">
         <div class="tab-pane" id="{{ loop.index }}-m">
-{{ files[file]['m']|highlight_matlab|safe }}
+{{ files[file]['m']|highlight_matlab(hl_lines[file])|safe }}
         </div>
         <div class="tab-pane" id="{{ loop.index }}-xml">
 {{ files[file]['xml']|highlight_xml|safe }}
