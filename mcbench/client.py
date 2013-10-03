@@ -6,8 +6,6 @@ import chardet
 import lxml.etree
 import redis
 
-s3_bucket = boto.connect_s3().get_bucket('mclab.mcbench')
-
 
 def fix_utf8(s):
     encoding = chardet.detect(s)['encoding']
@@ -28,6 +26,7 @@ class Benchmark(object):
         self.url = url
 
         self._files = {}
+        self._client = None
 
     def decode_utf8(self):
         self.author = self.author.decode('utf-8')
@@ -45,7 +44,8 @@ class Benchmark(object):
 
     def get_files(self):
         if not self._files:
-            keys = {key.key: key for key in s3_bucket.list(prefix=self.name)}
+            keys = self._client.s3_bucket.list(prefix=self.name)
+            keys = {key.key: key for key in keys}
             for m_key in keys:
                 if not m_key.endswith('.m'):
                     continue
@@ -75,8 +75,9 @@ class BenchmarkAlreadyExists(Exception):
 
 
 class McBenchClient(object):
-    def __init__(self, redis):
+    def __init__(self, redis, s3_bucket):
         self.redis = redis
+        self.s3_bucket = s3_bucket
 
         self._benchmark_cache = {}
 
@@ -89,6 +90,7 @@ class McBenchClient(object):
             benchmark = Benchmark(**data)
             benchmark.tags = benchmark.tags.split(',')
             benchmark.decode_utf8()
+            benchmark._client = self
             self._benchmark_cache[benchmark_id] = benchmark
         return self._benchmark_cache[benchmark_id]
 
@@ -113,5 +115,16 @@ class McBenchClient(object):
         self.redis.hmset('benchmark:%s' % benchmark_id, vars(benchmark))
 
 
-def from_redis_url(redis_url):
-    return McBenchClient(redis.from_url(redis_url))
+def create_for_app(app):
+    redis_instance = redis.from_url(app.config['REDIS_URL'])
+    aws_key = app.config['AWS_ACCESS_KEY_ID']
+    aws_secret = app.config['AWS_SECRET_ACCESS_KEY']
+    bucket = app.config['AWS_S3_BUCKET']
+    s3_bucket = boto.connect_s3(aws_key, aws_secret).get_bucket(bucket)
+    return McBenchClient(redis=redis_instance, s3_bucket=s3_bucket)
+
+
+def create():
+    return McBenchClient(
+        redis=redis.from_url('redis://localhost:6379'),
+        s3_bucket=boto.connect_s3().get_bucket('mclab.mcbench'))

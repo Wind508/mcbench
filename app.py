@@ -10,7 +10,7 @@ app.config.from_object('conf')
 app.jinja_env.filters['highlight_matlab'] = mcbench.highlighters.matlab
 app.jinja_env.filters['highlight_xml'] = mcbench.highlighters.xml
 
-mcbench_client = mcbench.client.from_redis_url(app.config['REDIS_URL'])
+mcbench_client = mcbench.client.create_for_app(app)
 
 
 @app.route('/', methods=['GET'])
