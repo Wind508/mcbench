@@ -2,9 +2,12 @@ import flask
 import lxml.etree
 
 import mcbench.client
+import mcbench.highlighters
 
 app = flask.Flask(__name__)
 app.config.from_object('conf')
+app.jinja_env.filters['highlight_matlab'] = mcbench.highlighters.matlab
+app.jinja_env.filters['highlight_xml'] = mcbench.highlighters.xml
 
 mcbench_client = mcbench.client.from_redis_url(app.config['REDIS_URL'])
 

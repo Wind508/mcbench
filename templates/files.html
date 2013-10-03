@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block extrahead %}
+<link href="{{ url_for('static', filename='css/highlight.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <ul class="nav nav-tabs" id="files-tabs">
@@ -18,14 +22,10 @@
 
       <div class="tab-content">
         <div class="tab-pane" id="{{ loop.index }}-m">
-          <pre>
-{{ files[file]['m'] }}
-          </pre>
+{{ files[file]['m']|highlight_matlab|safe }}
         </div>
         <div class="tab-pane" id="{{ loop.index }}-xml">
-          <pre>
-{{ files[file]['xml'] }}
-          </pre>
+{{ files[file]['xml']|highlight_xml|safe }}
         </div>
       </div>
     </div>
