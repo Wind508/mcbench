@@ -21,7 +21,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    mcbench_client = mcbench.client.from_redis_url(args.redis_url)
+    mcbench_client = mcbench.client.create(redis_url=args.redis_url)
     with open(os.path.expanduser(args.manifest)) as f:
         manifest = json.load(f)
         for project in manifest['projects']:

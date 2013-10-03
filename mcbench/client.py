@@ -110,6 +110,8 @@ class McBenchClient(object):
             raise BenchmarkAlreadyExists
         benchmark_id = self.redis.incr('global:next_benchmark_id')
         benchmark_dict = vars(benchmark)
+        del benchmark_dict['_files']
+        del benchmark_dict['_client']
         benchmark_dict['tags'] = ','.join(benchmark_dict['tags'])
         self.redis.set('name:%s:id' % benchmark.name, benchmark_id)
         self.redis.hmset('benchmark:%s' % benchmark_id, vars(benchmark))
@@ -124,7 +126,9 @@ def create_for_app(app):
     return McBenchClient(redis=redis_instance, s3_bucket=s3_bucket)
 
 
-def create():
+def create(redis_url=None):
+    if redis_url is None:
+        redis_url = 'redis://localhost:6379'
     return McBenchClient(
-        redis=redis.from_url('redis://localhost:6379'),
+        redis=redis.from_url(redis_url),
         s3_bucket=boto.connect_s3().get_bucket('mclab.mcbench'))
