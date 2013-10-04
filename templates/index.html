@@ -11,5 +11,14 @@
       </form>
     </div>
   </div>
+
+<div class="container">
+  <div class="row">
+  <h1>Try some of these examples:</h1>
+  <table class="table">
+  <tr><td>Calls to eval<td><td><a href="{{ url_for('benchmark_list', query="//ParameterizedExpr[./*[position()=1 and name(.)='NameExpr' and ./@kind='FUN']/Name/@nameId='eval']") }}">//ParameterizedExpr[./*[position()=1 and name(.)='NameExpr' and ./@kind='FUN']/Name/@nameId='eval']</a>
+  </table>
+  </div>
+</div>
 </div>
 {% endblock %}
