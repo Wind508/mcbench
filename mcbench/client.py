@@ -1,7 +1,6 @@
 import collections
 import os
 
-import boto
 import chardet
 import lxml.etree
 import redis
@@ -10,6 +9,19 @@ import redis
 def fix_utf8(s):
     encoding = chardet.detect(s)['encoding']
     return unicode(s.decode(encoding))
+
+
+def get_matlab_files(root):
+    for dirpath, _, files in os.walk(root):
+        for file in files:
+            base, ext = os.path.splitext(file)
+            if ext == '.m':
+                yield os.path.join(dirpath, base)
+
+
+def get_file_contents(filename):
+    with open(filename) as f:
+        return f.read()
 
 
 class Benchmark(object):
@@ -44,17 +56,12 @@ class Benchmark(object):
 
     def get_files(self):
         if not self._files:
-            keys = self._client.s3_bucket.list(prefix=self.name)
-            keys = {key.key: key for key in keys}
-            for m_key in keys:
-                if not m_key.endswith('.m'):
-                    continue
-                base = os.path.splitext(m_key)[0]
-                xml_key = '%s.xml' % base
-                m_contents = keys[m_key].get_contents_as_string()
-                xml_contents = keys[xml_key].get_contents_as_string()
+            root = os.path.join(self._client.data_root, self.name)
+            for base in get_matlab_files(root):
+                m_contents = get_file_contents('%s.m' % base)
+                xml_contents = get_file_contents('%s.xml' % base)
                 xml_parsed = lxml.etree.XML(xml_contents)
-                self._files[base] = {
+                self._files[base[len(root) + 1:]] = {
                     'm': fix_utf8(m_contents),
                     'xml': xml_contents,
                     'etree': xml_parsed,
@@ -75,9 +82,9 @@ class BenchmarkAlreadyExists(Exception):
 
 
 class McBenchClient(object):
-    def __init__(self, redis, s3_bucket):
+    def __init__(self, redis, data_root):
         self.redis = redis
-        self.s3_bucket = s3_bucket
+        self.data_root = data_root
 
         self._benchmark_cache = {}
 
@@ -119,16 +126,15 @@ class McBenchClient(object):
 
 def create_for_app(app):
     redis_instance = redis.from_url(app.config['REDIS_URL'])
-    aws_key = app.config['AWS_ACCESS_KEY_ID']
-    aws_secret = app.config['AWS_SECRET_ACCESS_KEY']
-    bucket = app.config['AWS_S3_BUCKET']
-    s3_bucket = boto.connect_s3(aws_key, aws_secret).get_bucket(bucket)
-    return McBenchClient(redis=redis_instance, s3_bucket=s3_bucket)
+    data_root = app.config['DATA_ROOT']
+    return McBenchClient(redis=redis_instance, data_root=data_root)
 
 
-def create(redis_url=None):
+def create(redis_url=None, data_root=None):
     if redis_url is None:
         redis_url = 'redis://localhost:6379'
+    if data_root is None:
+        data_root = '/Users/isbadawi/code/py/matlab-file-exchange-scraper/downloads/successfully_parsed'
     return McBenchClient(
         redis=redis.from_url(redis_url),
-        s3_bucket=boto.connect_s3().get_bucket('mclab.mcbench'))
+        data_root=data_root)
