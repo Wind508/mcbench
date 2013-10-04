@@ -47,11 +47,12 @@ class Benchmark(object):
         self.title = self.title.decode('utf-8')
 
     def matches(self, xpath_query):
-        matching_lines = collections.defaultdict(list)
-        for base, files in self.get_files().items():
-            matches = xpath_query(files['etree'])
-            if matches:
-                matching_lines[base] = [e.get('line') for e in matches]
+        matching_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
+        if xpath_query is not None:
+            for base, files in self.get_files().items():
+                for match in xpath_query(files['etree']):
+                    matching_lines[base]['m'].append(match.get('line'))
+                    matching_lines[base]['xml'].append(match.sourceline)
         return matching_lines
 
     def get_files(self):

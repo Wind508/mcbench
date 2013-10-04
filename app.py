@@ -1,4 +1,3 @@
-import collections
 import flask
 import lxml.etree
 
@@ -37,15 +36,14 @@ def benchmark_list():
 def benchmark(name):
     benchmark = mcbench_client.get_benchmark_by_name(name)
 
-    matching_lines = collections.defaultdict(list)
-    query_string = flask.request.args.get('query')
-    if query_string:
+    query = flask.request.args.get('query')
+    if query:
         try:
-            query = lxml.etree.XPath(query_string)
+            query = lxml.etree.XPath(query)
         except lxml.etree.XPathSyntaxError as e:
             flask.flash('XPath syntax error: %s' % e.msg)
             return flask.redirect(flask.url_for('benchmark', name=name))
-        matching_lines = benchmark.matches(query)
+    matching_lines = benchmark.matches(query)
 
     return flask.render_template(
         'benchmark.html',
