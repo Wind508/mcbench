@@ -3,6 +3,9 @@ import lxml.etree
 
 import mcbench.client
 import mcbench.highlighters
+import mcbench.xpath
+
+mcbench.xpath.register_extensions()
 
 app = flask.Flask(__name__)
 app.config.from_object('conf')
