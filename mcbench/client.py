@@ -2,8 +2,9 @@ import collections
 import os
 
 import chardet
-import lxml.etree
 import redis
+
+import mcbench.xpath
 
 
 def fix_utf8(s):
@@ -46,11 +47,14 @@ class Benchmark(object):
         self.tags = [tag.decode('utf-8') for tag in self.tags]
         self.title = self.title.decode('utf-8')
 
-    def matches(self, xpath_query):
+    def matches(self, query):
+        return query is None or bool(self.get_matching_lines(query))
+
+    def get_matching_lines(self, query):
         matching_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
-        if xpath_query is not None:
+        if query is not None:
             for base, files in self.get_files().items():
-                for match in xpath_query(files['etree']):
+                for match in query(files['etree']):
                     matching_lines[base]['m'].append(match.get('line'))
                     matching_lines[base]['xml'].append(match.sourceline)
         return matching_lines
@@ -61,7 +65,7 @@ class Benchmark(object):
             for base in get_matlab_files(root):
                 m_contents = get_file_contents('%s.m' % base)
                 xml_contents = get_file_contents('%s.xml' % base)
-                xml_parsed = lxml.etree.XML(xml_contents)
+                xml_parsed = mcbench.xpath.parse_xml(xml_contents)
                 self._files[base[len(root) + 1:]] = {
                     'm': fix_utf8(m_contents),
                     'xml': xml_contents,
