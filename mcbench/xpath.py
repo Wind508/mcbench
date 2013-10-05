@@ -25,6 +25,6 @@ def register_extensions():
 
 def is_call(node, name):
     return (node.tag == 'ParameterizedExpr' and
-        node[0].tag == 'NameExpr' and
-        node[0].get('kind') == 'FUN' and
-        node[0][0].get('nameId') == name)
+            node[0].tag == 'NameExpr' and
+            node[0].get('kind') == 'FUN' and
+            node[0][0].get('nameId') == name)

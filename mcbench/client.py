@@ -73,7 +73,6 @@ class Benchmark(object):
                 }
         return self._files
 
-
     def __repr__(self):
         return '<Benchmark: %s>' % self.name
 
