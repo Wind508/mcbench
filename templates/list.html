@@ -12,6 +12,9 @@
 <div class="container">
   <div class="row">
     <div class="span12">
+{% with query = request.values.get('query', '') %}
+  <h3>We found {{ benchmarks|length }} benchmarks{% if query %} matching {{ query }}{% endif %}.</h3>
+{% endwith %}
     {% for benchmark in benchmarks %}
     <div class="benchmark">
       <p>
