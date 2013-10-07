@@ -4,7 +4,6 @@ MarkupSafe==0.18
 Pygments==1.6
 Werkzeug==0.9.4
 chardet==2.1.1
-gunicorn==18.0
 itsdangerous==0.23
 lxml==3.2.3
 redis==2.8.0

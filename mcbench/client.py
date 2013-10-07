@@ -4,7 +4,7 @@ import os
 import chardet
 import redis
 
-import mcbench.xpath
+from . import xpath
 
 
 def fix_utf8(s):

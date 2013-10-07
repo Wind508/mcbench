@@ -3,11 +3,12 @@ import flask
 import mcbench.client
 import mcbench.highlighters
 import mcbench.xpath
+import conf
 
 mcbench.xpath.register_extensions()
 
 app = flask.Flask(__name__)
-app.config.from_object('conf')
+app.config.from_object(conf)
 app.jinja_env.filters['highlight_matlab'] = mcbench.highlighters.matlab
 app.jinja_env.filters['highlight_xml'] = mcbench.highlighters.xml
 
