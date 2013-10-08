@@ -65,7 +65,7 @@ class Benchmark(object):
             for base in get_matlab_files(root):
                 m_contents = get_file_contents('%s.m' % base)
                 xml_contents = get_file_contents('%s.xml' % base)
-                xml_parsed = mcbench.xpath.parse_xml(xml_contents)
+                xml_parsed = xpath.parse_xml(xml_contents)
                 self._files[base[len(root) + 1:]] = {
                     'm': fix_utf8(m_contents),
                     'xml': xml_contents,
