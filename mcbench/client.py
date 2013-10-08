@@ -9,7 +9,12 @@ from . import xpath
 
 def fix_utf8(s):
     encoding = chardet.detect(s)['encoding']
-    return unicode(s.decode(encoding))
+    try:
+        return unicode(s.decode(encoding))
+    except UnicodeDecodeError:
+        if encoding != 'windows-1255':
+            raise
+        return unicode(s.decode('latin1'))
 
 
 def get_matlab_files(root):
