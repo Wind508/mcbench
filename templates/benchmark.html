@@ -23,7 +23,7 @@
 <div class="container">
   <ul class="nav nav-tabs" id="files-tabs">
   {% for file in files %}
-    <li><a href="#{{ loop.index }}">{{ file }}</a></li>
+    <li><a href="#{{ loop.index }}">{{ file }}{% if hl_lines[file]['m'] %} ({{ hl_lines[file]['m']|length }}){% endif %}</a></li>
   {% endfor %}
   </ul>
 
