@@ -51,12 +51,15 @@ def benchmark(name):
     except mcbench.xpath.XPathError as e:
         flask.flash('XPath error: %s' % e.message)
         return redirect('benchmark', name=name)
+    files = benchmark.get_files()
     matching_lines = benchmark.get_matching_lines(query)
+    num_matches = sum(len(matching_lines[f]['m']) for f in files)
     return flask.render_template(
         'benchmark.html',
         benchmark=benchmark,
         hl_lines=matching_lines,
-        files=benchmark.get_files()
+        num_matches=num_matches,
+        files=files
     )
 
 if __name__ == "__main__":
