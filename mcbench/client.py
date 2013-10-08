@@ -46,7 +46,6 @@ class Benchmark(object):
         self.title = title
         self.url = url
 
-        self._files = {}
         self._client = None
 
     def decode_utf8(self):
@@ -68,18 +67,18 @@ class Benchmark(object):
         return matching_lines
 
     def get_files(self):
-        if not self._files:
-            root = os.path.join(self._client.data_root, self.name)
-            for base in get_matlab_files(root):
-                m_contents = get_file_contents('%s.m' % base)
-                xml_contents = get_file_contents('%s.xml' % base)
-                xml_parsed = xpath.parse_xml(xml_contents)
-                self._files[base[len(root) + 1:]] = {
-                    'm': fix_utf8(m_contents),
-                    'xml': xml_contents,
-                    'etree': xml_parsed,
-                }
-        return self._files
+        files = {}
+        root = os.path.join(self._client.data_root, self.name)
+        for base in get_matlab_files(root):
+            m_contents = get_file_contents('%s.m' % base)
+            xml_contents = get_file_contents('%s.xml' % base)
+            xml_parsed = xpath.parse_xml(xml_contents)
+            files[base[len(root) + 1:]] = {
+                'm': fix_utf8(m_contents),
+                'xml': xml_contents,
+                'etree': xml_parsed,
+            }
+        return files
 
     def __repr__(self):
         return '<Benchmark: %s>' % self.name
@@ -98,20 +97,16 @@ class McBenchClient(object):
         self.redis = redis
         self.data_root = data_root
 
-        self._benchmark_cache = {}
-
     def get_benchmark_by_id(self, benchmark_id):
         benchmark_id = str(benchmark_id)
-        if benchmark_id not in self._benchmark_cache:
-            data = self.redis.hgetall('benchmark:%s' % benchmark_id)
-            if not data:
-                raise BenchmarkDoesNotExist
-            benchmark = Benchmark(**data)
-            benchmark.tags = benchmark.tags.split(',')
-            benchmark.decode_utf8()
-            benchmark._client = self
-            self._benchmark_cache[benchmark_id] = benchmark
-        return self._benchmark_cache[benchmark_id]
+        data = self.redis.hgetall('benchmark:%s' % benchmark_id)
+        if not data:
+            raise BenchmarkDoesNotExist
+        benchmark = Benchmark(**data)
+        benchmark.tags = benchmark.tags.split(',')
+        benchmark.decode_utf8()
+        benchmark._client = self
+        return benchmark
 
     def get_benchmark_by_name(self, name):
         benchmark_id = self.redis.get('name:%s:id' % name)
@@ -129,7 +124,6 @@ class McBenchClient(object):
             raise BenchmarkAlreadyExists
         benchmark_id = self.redis.incr('global:next_benchmark_id')
         benchmark_dict = vars(benchmark)
-        del benchmark_dict['_files']
         del benchmark_dict['_client']
         benchmark_dict['tags'] = ','.join(benchmark_dict['tags'])
         self.redis.set('name:%s:id' % benchmark.name, benchmark_id)
