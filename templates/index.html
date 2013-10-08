@@ -17,7 +17,7 @@
   <h1>Try some of these examples:</h1>
   <table class="table">
   <tr><td>Calls to eval</td><td><a href="{{ url_for('benchmark_list', query="//*[is_call('eval')]") }}">//*[is_call('eval')]</a></td></tr>
-  <tr><td>Calls to feval with a string literal target</td><td><a href="{{ url_for('benchmark_list', query="//*[is_call('feval') and ./[position()=2 and name(.)='StringLiteralExpr']]") }}">//*[is_call('feval') and ./[position()=2 and name(.)='StringLiteralExpr']]</a></td></tr>
+  <tr><td>Calls to feval with a string literal target</td><td><a href="{{ url_for('benchmark_list', query="//*[is_call('feval') and ./*[position()=2 and name(.)='StringLiteralExpr']]") }}">//*[is_call('feval') and ./*[position()=2 and name(.)='StringLiteralExpr']]</a></td></tr>
   <tr><td>Copy statements inside loops</td><td><a href="{{ url_for('benchmark_list', query="//ForStmt//AssignStmt[./*[position()=1 and name(.)='NameExpr'] and ./*[position()=2 and name(.)='NameExpr' and ./@kind='VAR']]") }}">//ForStmt//AssignStmt[./*[position()=1 and name(.)='NameExpr'] and ./*[position()=2 and name(.)='NameExpr' and ./@kind='VAR']]</a></td></tr>
   </table>
   </div>
