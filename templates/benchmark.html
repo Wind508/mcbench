@@ -14,7 +14,9 @@
         <input name="query" type="search" class="form-control input-lg" style="width:80%;" value="{{ query }}" />
         <button type="submit" class="btn btn-default btn-lg">Search</button>
       </form>
+    {% if query %}
     <h3>Found {{ num_matches }} match{% if num_matches != 1 %}es{% endif %} in this benchmark for this query.</h3>
+    {% endif %}
     {% endwith %}
     </div>
   </div>
