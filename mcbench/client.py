@@ -12,6 +12,9 @@ def fix_utf8(s):
     try:
         return unicode(s.decode(encoding))
     except UnicodeDecodeError:
+        # chardet seems to get the 2224-cost231-models files wrong;
+        # it says windows-1255 but they're actually latin1 (according to vim).
+        # This is an ugly workaround for this case.
         if encoding != 'windows-1255':
             raise
         return unicode(s.decode('latin1'))
