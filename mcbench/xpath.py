@@ -7,7 +7,7 @@ class XPathError(Exception):
     pass
 
 
-def parse_xml_from_file(filename):
+def parse_xml_filename(filename):
     return lxml.etree.parse(filename)
 
 

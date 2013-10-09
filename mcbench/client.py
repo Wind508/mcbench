@@ -68,7 +68,7 @@ class Benchmark(object):
 
     def get_parsed_xml(self):
         root = os.path.join(self._client.data_root, self.name)
-        return {base: xpath.parse_xml_from_file('%s.xml' % base)
+        return {base[len(root) + 1:]: xpath.parse_xml_filename('%s.xml' % base)
                 for base in get_matlab_files(root)}
 
     def get_files(self):
