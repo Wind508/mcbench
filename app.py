@@ -1,3 +1,5 @@
+import collections
+
 import flask
 
 import mcbench.client
@@ -51,15 +53,21 @@ def benchmark(name):
     except mcbench.xpath.XPathError as e:
         flask.flash('XPath error: %s' % e.message)
         return redirect('benchmark', name=name)
-    files = benchmark.get_files()
-    matching_lines = benchmark.get_matching_lines(query)
-    num_matches = sum(len(matching_lines[f]['m']) for f in files)
+
+    files = list(benchmark.get_files())
+    hl_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
+    num_matches = 0
+    for file in files:
+        for match in file.get_matches(query):
+            hl_lines[file.name]['m'].append(match.get('line'))
+            hl_lines[file.name]['xml'].append(match.sourceline)
+            num_matches += 1
     return flask.render_template(
         'benchmark.html',
         benchmark=benchmark,
-        hl_lines=matching_lines,
+        hl_lines=hl_lines,
         num_matches=num_matches,
-        files=files
+        files=files,
     )
 
 if __name__ == "__main__":

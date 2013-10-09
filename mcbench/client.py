@@ -1,4 +1,3 @@
-import collections
 import os
 
 import chardet
@@ -20,17 +19,33 @@ def fix_utf8(s):
         return unicode(s.decode('latin1'))
 
 
-def get_matlab_files(root):
-    for dirpath, _, files in os.walk(root):
-        for file in files:
-            base, ext = os.path.splitext(file)
-            if ext == '.m':
-                yield os.path.join(dirpath, base)
+class File(object):
+    def __init__(self, root, name):
+        self.root = root
+        self.name = name
 
+    def _read_file(self, ext):
+        filename = os.path.join(self.root, '%s.%s' % (self.name, ext))
+        with open(filename) as f:
+            return f.read()
 
-def get_file_contents(filename):
-    with open(filename) as f:
-        return f.read()
+    def read_matlab(self):
+        return fix_utf8(self._read_file('m'))
+
+    def read_xml(self):
+        return self._read_file('xml')
+
+    def _parse_xml(self):
+        return xpath.parse_xml_filename(
+            os.path.join(self.root, '%s.xml' % self.name))
+
+    def get_matches(self, query):
+        if query is None:
+            return []
+        return query(self._parse_xml())
+
+    def __repr__(self):
+        return '<File: %s>' % self.name
 
 
 class Benchmark(object):
@@ -54,34 +69,19 @@ class Benchmark(object):
         self.tags = [tag.decode('utf-8') for tag in self.tags]
         self.title = self.title.decode('utf-8')
 
-    def matches(self, query):
-        return query is None or bool(self.get_matching_lines(query))
-
-    def get_matching_lines(self, query):
-        matching_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
-        if query is not None:
-            for base, etree in self.get_parsed_xml().iteritems():
-                for match in query(etree):
-                    matching_lines[base]['m'].append(match.get('line'))
-                    matching_lines[base]['xml'].append(match.sourceline)
-        return matching_lines
-
-    def get_parsed_xml(self):
-        root = os.path.join(self._client.data_root, self.name)
-        return {base[len(root) + 1:]: xpath.parse_xml_filename('%s.xml' % base)
-                for base in get_matlab_files(root)}
-
     def get_files(self):
-        files = {}
         root = os.path.join(self._client.data_root, self.name)
-        for base in get_matlab_files(root):
-            m_contents = get_file_contents('%s.m' % base)
-            xml_contents = get_file_contents('%s.xml' % base)
-            files[base[len(root) + 1:]] = {
-                'm': fix_utf8(m_contents),
-                'xml': xml_contents,
-            }
-        return files
+        for dirpath, _, files in os.walk(root):
+            for file in files:
+                base, ext = os.path.splitext(file)
+                if ext == '.m':
+                    abs_path = os.path.join(dirpath, base)
+                    yield File(root, abs_path[len(root) + 1:])
+
+    def matches(self, query):
+        if query is None:
+            return True
+        return any(file.get_matches(query) for file in self.get_files())
 
     def __repr__(self):
         return '<Benchmark: %s>' % self.name

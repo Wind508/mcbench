@@ -25,7 +25,7 @@
 <div class="container">
   <ul class="nav nav-tabs" id="files-tabs">
   {% for file in files %}
-    <li><a href="#{{ loop.index }}">{{ file }}{% if hl_lines[file]['m'] %} ({{ hl_lines[file]['m']|length }}){% endif %}</a></li>
+    <li><a href="#{{ loop.index }}">{{ file.name }}{% if hl_lines[file.name]['m'] %} ({{ hl_lines[file.name]['m']|length }}){% endif %}</a></li>
   {% endfor %}
   </ul>
 
@@ -39,10 +39,10 @@
 
       <div class="tab-content">
         <div class="tab-pane" id="{{ loop.index }}-m">
-{{ files[file]['m']|highlight_matlab(hl_lines[file]['m'])|safe }}
+{{ file.read_matlab()|highlight_matlab(hl_lines[file.name]['m'])|safe }}
         </div>
         <div class="tab-pane" id="{{ loop.index }}-xml">
-{{ files[file]['xml']|highlight_xml(hl_lines[file]['xml'])|safe }}
+{{ file.read_xml()|highlight_xml(hl_lines[file.name]['xml'])|safe }}
         </div>
       </div>
     </div>
