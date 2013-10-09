@@ -139,11 +139,9 @@ def create_for_app(app):
     return McBenchClient(redis=redis_instance, data_root=data_root)
 
 
-def create(redis_url=None, data_root=None):
+def create(data_root, redis_url=None):
     if redis_url is None:
         redis_url = 'redis://localhost:6379'
-    if data_root is None:
-        data_root = '/Users/isbadawi/code/py/matlab-file-exchange-scraper/downloads/successfully_parsed'
     return McBenchClient(
         redis=redis.from_url(redis_url),
         data_root=data_root)
