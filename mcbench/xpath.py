@@ -7,8 +7,8 @@ class XPathError(Exception):
     pass
 
 
-def parse_xml(document):
-    return lxml.etree.XML(document)
+def parse_xml_from_file(filename):
+    return lxml.etree.parse(filename)
 
 
 def compile_xpath(query):

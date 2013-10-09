@@ -60,11 +60,16 @@ class Benchmark(object):
     def get_matching_lines(self, query):
         matching_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
         if query is not None:
-            for base, files in self.get_files().items():
-                for match in query(files['etree']):
+            for base, etree in self.get_parsed_xml().iteritems():
+                for match in query(etree):
                     matching_lines[base]['m'].append(match.get('line'))
                     matching_lines[base]['xml'].append(match.sourceline)
         return matching_lines
+
+    def get_parsed_xml(self):
+        root = os.path.join(self._client.data_root, self.name)
+        return {base: xpath.parse_xml_from_file('%s.xml' % base)
+                for base in get_matlab_files(root)}
 
     def get_files(self):
         files = {}
@@ -72,11 +77,9 @@ class Benchmark(object):
         for base in get_matlab_files(root):
             m_contents = get_file_contents('%s.m' % base)
             xml_contents = get_file_contents('%s.xml' % base)
-            xml_parsed = xpath.parse_xml(xml_contents)
             files[base[len(root) + 1:]] = {
                 'm': fix_utf8(m_contents),
                 'xml': xml_contents,
-                'etree': xml_parsed,
             }
         return files
 
