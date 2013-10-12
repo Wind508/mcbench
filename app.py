@@ -35,14 +35,32 @@ def index():
 
 @app.route('/list', methods=['GET'])
 def benchmark_list():
-    benchmarks = mcbench_client.get_all_benchmarks()
     try:
         query = get_compiled_query()
     except mcbench.xpath.XPathError as e:
         flask.flash('XPath error: %s' % e.message)
         return redirect('index')
-    benchmarks = [b for b in benchmarks if b.matches(query)]
-    return flask.render_template('list.html', benchmarks=benchmarks)
+
+    if query is None:
+        return flask.render_template(
+            'list.html', benchmarks=mcbench_client.get_all_benchmarks())
+
+    benchmarks = []
+    matches_by_benchmark = collections.defaultdict(int)
+    num_matches = 0
+    for benchmark in mcbench_client.get_all_benchmarks():
+        matches = benchmark.get_num_matches(query)
+        if matches:
+            benchmarks.append(benchmark)
+            matches_by_benchmark[benchmark.name] += matches
+            num_matches += matches
+    benchmarks.sort(key=lambda b: matches_by_benchmark[b.name], reverse=True)
+
+    return flask.render_template(
+        'list.html',
+        benchmarks=benchmarks,
+        matches_by_benchmark=matches_by_benchmark,
+        num_matches=num_matches)
 
 
 @app.route('/benchmark/<name>', methods=['GET'])
@@ -57,11 +75,13 @@ def benchmark(name):
     files = list(benchmark.get_files())
     hl_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
     num_matches = 0
-    for file in files:
-        for match in file.get_matches(query):
-            hl_lines[file.name]['m'].append(match.get('line'))
-            hl_lines[file.name]['xml'].append(match.sourceline)
-            num_matches += 1
+    if query is not None:
+        for file in files:
+            for match in file.get_matches(query):
+                hl_lines[file.name]['m'].append(match.get('line'))
+                hl_lines[file.name]['xml'].append(match.sourceline)
+                num_matches += 1
+
     return flask.render_template(
         'benchmark.html',
         benchmark=benchmark,

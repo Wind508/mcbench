@@ -13,12 +13,21 @@
   <div class="row">
     <div class="span12">
 {% with query = request.values.get('query', '') %}
-  <h3>We found {{ benchmarks|length }} benchmarks{% if query %} matching {{ query }}{% endif %}.</h3>
-{% endwith %}
+  {% if not query %}
+  <h3>We found {{ benchmarks|length }} benchmarks.</h3>
+  {% else %}
+  <h3>We found {{ num_matches }} occurrence{% if num_matches != 1 %}s{% endif %} of {{ query }} across {{ benchmarks|length }} benchmarks.</h3>
+  {% endif %}
     {% for benchmark in benchmarks %}
     <div class="benchmark">
       <p>
-      <span class="title"><a href="{{ url_for('benchmark', name=benchmark.name, query=request.values.get('query', '')) }}">{{ benchmark.title }}</a></span>
+      <span class="title"><a href="{{ url_for('benchmark', name=benchmark.name, query=query) }}">{{ benchmark.title }}</a>
+      {% if query %}
+        {% with matches = matches_by_benchmark[benchmark.name] %}
+          ({{ matches }} occurrence{% if matches != 1 %}s{% endif %})
+        {% endwith %}
+      {% endif %}
+      </span>
       <span class="author">from <a href="{{ benchmark.author_url }}">{{ benchmark.author }}</a></span>
       </p>
       <hr>
@@ -27,5 +36,6 @@
     </div>
     {% endfor %}
   </div>
+{% endwith %}
 </div>
 {% endblock %}

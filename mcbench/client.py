@@ -40,8 +40,6 @@ class File(object):
             os.path.join(self.root, '%s.xml' % self.name))
 
     def get_matches(self, query):
-        if query is None:
-            return []
         return query(self._parse_xml())
 
     def __repr__(self):
@@ -78,10 +76,8 @@ class Benchmark(object):
                     abs_path = os.path.join(dirpath, base)
                     yield File(root, abs_path[len(root) + 1:])
 
-    def matches(self, query):
-        if query is None:
-            return True
-        return any(file.get_matches(query) for file in self.get_files())
+    def get_num_matches(self, query):
+        return sum(len(f.get_matches(query)) for f in self.get_files())
 
     def __repr__(self):
         return '<Benchmark: %s>' % self.name
