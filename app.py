@@ -13,6 +13,7 @@ app = flask.Flask(__name__)
 app.config.from_object(settings)
 app.jinja_env.filters['highlight_matlab'] = mcbench.highlighters.matlab
 app.jinja_env.filters['highlight_xml'] = mcbench.highlighters.xml
+app.jinja_env.filters['pluralize'] = lambda n, s='s': s if n != 1 else ''
 
 mcbench_client = mcbench.client.create_for_app(app)
 
