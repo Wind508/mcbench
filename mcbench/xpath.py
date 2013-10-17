@@ -20,11 +20,24 @@ def compile_xpath(query):
 
 def register_extensions():
     ns = lxml.etree.FunctionNamespace(None)
-    ns['is_call'] = lambda c, n: is_call(c.context_node, n)
+    ns['is_call'] = is_call
 
 
-def is_call(node, name):
-    return (node.tag == 'ParameterizedExpr' and
-            node[0].tag == 'NameExpr' and
-            node[0].get('kind') == 'FUN' and
-            node[0][0].get('nameId') == name)
+def is_call(context, *names):
+    node = context.context_node
+    if node.tag != 'ParameterizedExpr':
+        return False
+    if node[0].tag != 'NameExpr' or node[0].get('kind') != 'FUN':
+        return False
+
+    called_name = node[0][0].get('nameId')
+
+    # Could this function like
+    # is_call('eval', 'feval') -> names is a tuple of strings
+    # is_call(//some/sequence) -> names[0] is a list of strings
+    for name in names:
+        if isinstance(name, basestring) and called_name == name:
+            return True
+        elif any(called_name == n for n in name):
+            return True
+    return False
