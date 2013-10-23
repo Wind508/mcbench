@@ -1,4 +1,5 @@
 import collections
+import time
 
 import flask
 
@@ -56,17 +57,20 @@ def benchmark_list():
     benchmarks = []
     matches_by_benchmark = collections.defaultdict(int)
     num_matches = 0
+    start = time.clock()
     for benchmark in mcbench_client.get_all_benchmarks():
         matches = benchmark.get_num_matches(query)
         if matches:
             benchmarks.append(benchmark)
             matches_by_benchmark[benchmark.name] += matches
             num_matches += matches
+    elapsed_time = time.clock() - start
     benchmarks.sort(key=lambda b: matches_by_benchmark[b.name], reverse=True)
 
     return flask.render_template(
         'list.html',
         benchmarks=benchmarks,
+        elapsed_time=elapsed_time,
         matches_by_benchmark=matches_by_benchmark,
         num_matches=num_matches)
 

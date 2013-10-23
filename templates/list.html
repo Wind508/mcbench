@@ -14,9 +14,11 @@
     <div class="span12">
 {% with query = request.values.get('query', '') %}
   {% if not query %}
-  <h3>We found {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }}.</h3>
+  <h3>Found {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }}.</h3>
   {% else %}
-  <h3>We found {{ num_matches }} occurrence{{ num_matches|pluralize }} of {{ query }} across {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }}.</h3>
+  <h3>Found {{ num_matches }} occurrence{{ num_matches|pluralize }} of {{ query }}
+      across {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }}
+      ({{ '%.2f seconds'|format(elapsed_time) }}).</h3>
   {% endif %}
     {% for benchmark in benchmarks %}
     <div class="benchmark">
