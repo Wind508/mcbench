@@ -1,10 +1,12 @@
 import chardet
+
 import collections
 import itertools
 import multiprocessing.pool
 import os
 
 import mcbench.xpath
+
 
 def fix_utf8(s):
     encoding = chardet.detect(s)['encoding']
