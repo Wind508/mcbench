@@ -55,10 +55,10 @@ def benchmark_list():
     if query is None:
         return flask.render_template('list.html', benchmarks=all_benchmarks)
 
-    start = time.clock()
+    start = time.time()
     benchmarks, matches_by_benchmark, num_matches = (
         all_benchmarks.get_num_matches(query))
-    elapsed_time = time.clock() - start
+    elapsed_time = time.time() - start
     benchmarks.sort(key=lambda b: matches_by_benchmark[b.name], reverse=True)
 
     return flask.render_template(
