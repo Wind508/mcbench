@@ -1,5 +1,7 @@
 import chardet
 import collections
+import multiprocessing.pool
+import threading
 import os
 
 import mcbench.xpath
@@ -97,11 +99,18 @@ class BenchmarkSet(list):
     def get_num_matches(self, query):
         benchmarks = []
         matches_by_benchmark = collections.defaultdict(int)
-        total_matches = 0
-        for benchmark in self:
+        total_matches = [0]
+        lock = threading.Lock()
+
+        def match(benchmark):
             matches = benchmark.get_num_matches(query)
             if matches:
-                benchmarks.append(benchmark)
-                matches_by_benchmark[benchmark.name] += matches
-                total_matches += matches
-        return benchmarks, matches_by_benchmark, total_matches
+                with lock:
+                    benchmarks.append(benchmark)
+                    matches_by_benchmark[benchmark.name] += matches
+                    total_matches[0] += matches
+
+        thread_pool = multiprocessing.pool.ThreadPool(processes=10)
+        thread_pool.map(match, self)
+        thread_pool.close()
+        return benchmarks, matches_by_benchmark, total_matches[0]
