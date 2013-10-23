@@ -5,7 +5,6 @@ import flask
 import mcbench.client
 import mcbench.highlighters
 import mcbench.xpath
-import settings
 
 EXAMPLE_QUERIES = (
     ('Calls to eval', "//ParameterizedExpr[is_call('eval')]"),
@@ -18,7 +17,7 @@ EXAMPLE_QUERIES = (
 mcbench.xpath.register_extensions()
 
 app = flask.Flask(__name__)
-app.config.from_object(settings)
+app.config.from_object('settings')
 app.jinja_env.filters['highlight_matlab'] = mcbench.highlighters.matlab
 app.jinja_env.filters['highlight_xml'] = mcbench.highlighters.xml
 app.jinja_env.filters['pluralize'] = lambda n, s='s': s if n != 1 else ''

@@ -3,7 +3,7 @@ import os
 import chardet
 import redis
 
-from . import xpath
+import mcbench.xpath
 
 
 def fix_utf8(s):
@@ -36,7 +36,7 @@ class File(object):
         return self._read_file('xml')
 
     def _parse_xml(self):
-        return xpath.parse_xml_filename(
+        return mcbench.xpath.parse_xml_filename(
             os.path.join(self.root, '%s.xml' % self.name))
 
     def get_matches(self, query):
