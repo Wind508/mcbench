@@ -79,6 +79,14 @@ class Benchmark(object):
     def get_num_matches(self, query):
         return sum(len(f.get_matches(query)) for f in self.get_files())
 
+    def get_matching_lines(self, query):
+        lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
+        for f in self.get_files():
+            for match in f.get_matches(query):
+                lines[f.name]['m'].append(match.get('line'))
+                lines[f.name]['xml'].append(match.sourceline)
+        return lines
+
     def as_dict(self):
         return dict(
             author=self.author,

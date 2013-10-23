@@ -79,14 +79,12 @@ def benchmark(name):
         return redirect('benchmark', name=name)
 
     files = list(benchmark.get_files())
-    hl_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
-    num_matches = 0
-    if query is not None:
-        for file in files:
-            for match in file.get_matches(query):
-                hl_lines[file.name]['m'].append(match.get('line'))
-                hl_lines[file.name]['xml'].append(match.sourceline)
-                num_matches += 1
+    if query is None:
+        hl_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
+        num_matches = 0
+    else:
+        hl_lines = benchmark.get_matching_lines(query)
+        num_matches = sum(len(v['m']) for v in hl_lines.values())
 
     return flask.render_template(
         'benchmark.html',
