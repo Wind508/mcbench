@@ -15,7 +15,7 @@ def load_manifest(manifest):
     with open(os.path.expanduser(manifest)) as f:
         manifest = json.load(f)
         for project in manifest['projects']:
-            benchmark = mcbench.client.Benchmark(**project)
+            benchmark = mcbench.benchmark.Benchmark(**project)
             mcbench_client.insert_benchmark(benchmark)
 
 if __name__ == '__main__':
