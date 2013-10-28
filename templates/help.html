@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+  <div class="row">
+  <h3>Links</h3>
+  <ul>
+  <li>A different (obsolete) implementation of McBench is described in chapter 3 of
+  <a href="http://www.sable.mcgill.ca/publications/thesis/masters-sradpo/sradpothesis.pdf">
+  Soroush Radpour's Master's thesis</a>.</li>
+  <li>This <a href="http://www.w3schools.com/xpath/default.asp">XPath reference</a> is useful.
+  <li>This file describes the <a href="https://raw.github.com/Sable/mclab/develop/languages/Natlab/src/natlab.ast">structure of the Matlab AST</a>. Within each benchmark, each file has an XML tab which contains a pretty-printed view of the XML AST; this can help you devise queries.</li>
+  </ul>
+  <h3>Extensions</h3>
+  <p>McBench introduces some XPath extensions to make queries more convenient.<p>
+  <ul>
+    <li><code>is_call(names)</code> is a predicate that returns true if the node
+    represents a call to a function whose name is in <code>names</code>, which may be
+    an XPath path expression or a comma-separated list of string literals. Some examples:
+    <ul>
+      <li><code>//ParameterizedExpr[is_call('eval', 'feval')]</code> selects all calls
+      to either <code>eval</code> or <code>feval</code>.</li>
+      <li><code>//ParameterizedExpr[is_call(ancestor::Function/@name)]</code> selects
+      all calls to functions that are ancestors of the call. In the simplest case this means
+      recursive calls; in the presence of nested functions, it could either the nested function
+      or the enclosing function.</li>
+    </ul>
+    </li>
+  </ul>
+  </div>
+</div>
+{% endblock %}

@@ -42,6 +42,11 @@ def index():
     return flask.render_template('index.html', examples=EXAMPLE_QUERIES)
 
 
+@app.route('/help', methods=['GET'])
+def help():
+    return flask.render_template('help.html')
+
+
 @app.route('/list', methods=['GET'])
 def benchmark_list():
     try:
