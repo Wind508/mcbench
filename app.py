@@ -13,6 +13,8 @@ EXAMPLE_QUERIES = (
      "//ParameterizedExpr[is_call('feval') and ./*[position()=2 and name(.)='StringLiteralExpr']]"),
     ('Copy statements inside loops', "//ForStmt//AssignStmt[./*[position()=1 and name(.)='NameExpr'] and ./*[position()=2 and name(.)='NameExpr' and ./@kind='VAR']]"),
     ('Recursive calls', '//ParameterizedExpr[is_call(ancestor::Function/@name)]'),
+    ('Functions with multiple return values',
+     "//Function[./OutputParamList[count(Name) > 1]]"),
 )
 
 mcbench.xpath.register_extensions()
