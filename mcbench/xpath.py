@@ -11,7 +11,7 @@ def parse_xml_filename(filename):
     return lxml.etree.parse(filename)
 
 
-def compile_xpath(query):
+def compile(query):
     try:
         return lxml.etree.XPath(query)
     except lxml.etree.XPathSyntaxError as e:

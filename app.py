@@ -32,11 +32,12 @@ def redirect(url_name, *args, **kwargs):
     return flask.redirect(flask.url_for(url_name, *args, **kwargs))
 
 
-def get_compiled_query():
+def get_valid_query_or_throw():
     query = flask.request.args.get('query') or None
     if query is None:
         return None
-    return mcbench.xpath.compile_xpath(query)
+    mcbench.xpath.compile(query)
+    return query
 
 
 @app.route('/', methods=['GET'])
@@ -52,7 +53,7 @@ def help():
 @app.route('/list', methods=['GET'])
 def benchmark_list():
     try:
-        query = get_compiled_query()
+        query = get_valid_query_or_throw()
     except mcbench.xpath.XPathError as e:
         flask.flash('XPath error: %s' % e.message)
         return redirect('index')
@@ -80,7 +81,7 @@ def benchmark_list():
 def benchmark(name):
     benchmark = mcbench_client.get_benchmark_by_name(name)
     try:
-        query = get_compiled_query()
+        query = get_valid_query_or_throw()
     except mcbench.xpath.XPathError as e:
         flask.flash('XPath error: %s' % e.message)
         return redirect('benchmark', name=name)

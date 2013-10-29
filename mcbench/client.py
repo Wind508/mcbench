@@ -37,7 +37,7 @@ class McBenchClient(object):
         benchmarks = [
             self.get_benchmark_by_id(key[len('benchmark:'):])
             for key in self.redis.keys('benchmark:*')]
-        return mcbench.benchmark.BenchmarkSet(benchmarks)
+        return mcbench.benchmark.BenchmarkSet(self.data_root, benchmarks)
 
     def insert_benchmark(self, benchmark):
         benchmark_id = self.redis.get('name:%s:id' % benchmark.name)

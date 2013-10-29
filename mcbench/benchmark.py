@@ -2,10 +2,8 @@ import chardet
 
 import collections
 import itertools
-import multiprocessing.pool
+import multiprocessing
 import os
-import threading
-import weakref
 
 import mcbench.xpath
 
@@ -44,6 +42,7 @@ class File(object):
             os.path.join(self.root, '%s.xml' % self.name))
 
     def get_matches(self, query):
+        query = mcbench.xpath.compile(query)
         return query(self._parse_xml())
 
     def __repr__(self):
@@ -107,18 +106,33 @@ class Benchmark(object):
         return '<Benchmark: %s>' % self.name
 
 
-class BenchmarkSet(list):
-    def _map(self, f):
-        # Using a ThreadPool here would sometimes cause a crash when
-        # using python2.6 and running via mod_wsgi (issue #14881)
-        # It was fixed in 3.3 and backported to 2.7 but for 2.6 we use this
-        # workaround from http://bugs.python.org/issue10015#msg146473
-        if not hasattr(threading.current_thread(), '_children'):
-            threading.current_thread()._children = weakref.WeakKeyDictionary()
+# There is some duplicated logic here.
+# This is a "standalone" function to be called by a process worker.
+def get_num_matches((benchmark_path, query)):
+    query = mcbench.xpath.compile(query)
+    matches = 0
+    for dirpath, _, files in os.walk(benchmark_path):
+        for file in files:
+            base, ext = os.path.splitext(file)
+            if ext != '.m':
+                continue
+            xml_path = os.path.join(dirpath, '%s.xml' % base)
+            xml = mcbench.xpath.parse_xml_filename(xml_path)
+            matches += len(query(xml))
+    return matches
 
-        thread_pool = multiprocessing.pool.ThreadPool(processes=4)
-        results = thread_pool.map(f, self)
-        thread_pool.close()
+
+class BenchmarkSet(list):
+    def __init__(self, data_root, benchmarks):
+        super(BenchmarkSet, self).__init__(benchmarks)
+        self.data_root = data_root
+
+    def _map(self, query):
+        pool = multiprocessing.Pool(processes=4)
+        results = pool.map(
+            get_num_matches,
+            ((os.path.join(self.data_root, b.name), query) for b in self))
+        pool.close()
         return results
 
     def get_num_matches(self, query):
@@ -126,7 +140,7 @@ class BenchmarkSet(list):
         matches_by_benchmark = collections.defaultdict(int)
         total_matches = 0
 
-        results = self._map(lambda b: b.get_num_matches(query))
+        results = self._map(query)
         for benchmark, num_matches in itertools.izip(self, results):
             if num_matches:
                 benchmarks.append(benchmark)
