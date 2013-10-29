@@ -1,4 +1,3 @@
-import collections
 import time
 
 import flask
@@ -87,12 +86,8 @@ def benchmark(name):
         return redirect('benchmark', name=name)
 
     files = list(benchmark.get_files())
-    if query is None:
-        hl_lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
-        num_matches = 0
-    else:
-        hl_lines = benchmark.get_matching_lines(query)
-        num_matches = sum(len(v['m']) for v in hl_lines.values())
+    hl_lines = benchmark.get_matching_lines(query)
+    num_matches = sum(len(v['m']) for v in hl_lines.values())
 
     return flask.render_template(
         'benchmark.html',

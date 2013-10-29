@@ -84,6 +84,8 @@ class Benchmark(object):
 
     def get_matching_lines(self, query):
         lines = collections.defaultdict(lambda: {'m': [], 'xml': []})
+        if query is None:
+            return lines
         for f in self.get_files():
             for match in f.get_matches(query):
                 lines[f.name]['m'].append(match.get('line'))
