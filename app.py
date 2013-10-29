@@ -70,7 +70,7 @@ def benchmark_list():
 
     return flask.render_template(
         'list.html',
-        benchmarks=benchmarks,
+        benchmarks=[b.data for b in benchmarks],
         elapsed_time=elapsed_time,
         matches_by_benchmark=matches_by_benchmark,
         num_matches=num_matches)
@@ -91,7 +91,7 @@ def benchmark(name):
 
     return flask.render_template(
         'benchmark.html',
-        benchmark=benchmark,
+        benchmark=benchmark.data,
         hl_lines=hl_lines,
         num_matches=num_matches,
         files=files,

@@ -50,25 +50,11 @@ class File(object):
 
 
 class Benchmark(object):
-    def __init__(self, author, author_url, date_submitted, date_updated,
-                 name, summary, tags, title, url):
-        self.author = author
-        self.author_url = author_url
-        self.date_submitted = date_submitted
-        self.date_updated = date_updated
-        self.name = name
-        self.summary = summary
-        self.tags = tags
-        self.title = title
-        self.url = url
-
-        self.data_root = None
-
-    def decode_utf8(self):
-        self.author = self.author.decode('utf-8')
-        self.summary = self.summary.decode('utf-8')
-        self.tags = [tag.decode('utf-8') for tag in self.tags]
-        self.title = self.title.decode('utf-8')
+    def __init__(self, data_root, name=None, data=None):
+        assert not (name is None and data is None)
+        self.data_root = data_root
+        self.name = name if name is not None else data['name']
+        self.data = data
 
     def get_files(self):
         root = os.path.join(self.data_root, self.name)
@@ -92,36 +78,12 @@ class Benchmark(object):
                 lines[f.name]['xml'].append(match.sourceline)
         return lines
 
-    def as_dict(self):
-        return dict(
-            author=self.author,
-            author_url=self.author_url,
-            date_submitted=self.date_submitted,
-            date_updated=self.date_updated,
-            name=self.name,
-            summary=self.summary,
-            tags=','.join(self.tags),
-            title=self.title,
-            url=self.url)
-
     def __repr__(self):
         return '<Benchmark: %s>' % self.name
 
 
-# There is some duplicated logic here.
-# This is a "standalone" function to be called by a process worker.
-def get_num_matches((benchmark_path, query)):
-    query = mcbench.xpath.compile(query)
-    matches = 0
-    for dirpath, _, files in os.walk(benchmark_path):
-        for file in files:
-            base, ext = os.path.splitext(file)
-            if ext != '.m':
-                continue
-            xml_path = os.path.join(dirpath, '%s.xml' % base)
-            xml = mcbench.xpath.parse_xml_filename(xml_path)
-            matches += len(query(xml))
-    return matches
+def get_num_matches_worker((data_root, name, query)):
+    return Benchmark(data_root, name).get_num_matches(query)
 
 
 class BenchmarkSet(list):
@@ -132,8 +94,8 @@ class BenchmarkSet(list):
     def _map(self, query):
         pool = multiprocessing.Pool(processes=32)
         results = pool.map(
-            get_num_matches,
-            ((os.path.join(self.data_root, b.name), query) for b in self))
+            get_num_matches_worker,
+            ((self.data_root, b.name, query) for b in self))
         pool.close()
         return results
 

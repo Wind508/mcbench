@@ -21,11 +21,11 @@ class McBenchClient(object):
         data = self.redis.hgetall('benchmark:%s' % benchmark_id)
         if not data:
             raise BenchmarkDoesNotExist
-        benchmark = mcbench.benchmark.Benchmark(**data)
-        benchmark.tags = benchmark.tags.split(',')
-        benchmark.decode_utf8()
-        benchmark.data_root = self.data_root
-        return benchmark
+        data['author'] = data['author'].decode('utf-8')
+        data['summary'] = data['summary'].decode('utf-8')
+        data['tags'] = [tag.decode('utf-8') for tag in data['tags'].split(',')]
+        data['title'] = data['title'].decode('utf-8')
+        return mcbench.benchmark.Benchmark(self.data_root, data=data)
 
     def get_benchmark_by_name(self, name):
         benchmark_id = self.redis.get('name:%s:id' % name)
@@ -45,7 +45,8 @@ class McBenchClient(object):
             raise BenchmarkAlreadyExists
         benchmark_id = self.redis.incr('global:next_benchmark_id')
         self.redis.set('name:%s:id' % benchmark.name, benchmark_id)
-        self.redis.hmset('benchmark:%s' % benchmark_id, benchmark.as_dict())
+        data = dict(benchmark.data, tags=','.join(benchmark.data['tags']))
+        self.redis.hmset('benchmark:%s' % benchmark_id, data)
 
 
 def create_for_app(app):
