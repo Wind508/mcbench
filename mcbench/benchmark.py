@@ -128,7 +128,7 @@ class BenchmarkSet(list):
         self.data_root = data_root
 
     def _map(self, query):
-        pool = multiprocessing.Pool(processes=4)
+        pool = multiprocessing.Pool(processes=32)
         results = pool.map(
             get_num_matches,
             ((os.path.join(self.data_root, b.name), query) for b in self))
