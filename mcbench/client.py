@@ -34,9 +34,9 @@ class McBenchClient(object):
         return self.get_benchmark_by_id(benchmark_id)
 
     def get_all_benchmarks(self):
-        benchmarks = [
-            self.get_benchmark_by_id(key[len('benchmark:'):])
-            for key in self.redis.keys('benchmark:*')]
+        num_benchmarks = int(self.redis.get('global:next_benchmark_id'))
+        benchmarks = (self.get_benchmark_by_id(id)
+                      for id in xrange(1, num_benchmarks + 1))
         return mcbench.benchmark.BenchmarkSet(self.data_root, benchmarks)
 
     def insert_benchmark(self, benchmark):
