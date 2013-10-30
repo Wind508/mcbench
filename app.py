@@ -60,7 +60,9 @@ def benchmark_list():
     all_benchmarks = mcbench_client.get_all_benchmarks()
 
     if query is None:
-        return flask.render_template('list.html', benchmarks=all_benchmarks)
+        return flask.render_template(
+            'list.html',
+            benchmarks=[b.data for b in all_benchmarks])
 
     start = time.time()
     benchmarks, matches_by_benchmark, num_matches = (
