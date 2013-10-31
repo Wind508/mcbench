@@ -4,7 +4,13 @@ import lxml.etree
 
 
 class XPathError(Exception):
-    pass
+    def __init__(self, query, cause):
+        super(XPathError, self).__init__()
+        self.query = query
+        self.cause = cause
+
+    def __str__(self):
+        return '%s: %s' % (self.cause.__class__.__name__, self.cause.msg)
 
 
 def parse_xml_filename(filename):
@@ -14,8 +20,8 @@ def parse_xml_filename(filename):
 def compile(query):
     try:
         return lxml.etree.XPath(query)
-    except lxml.etree.XPathSyntaxError as e:
-        raise XPathError(e.msg), None, sys.exc_info()[2]
+    except lxml.etree.XPathError as e:
+        raise XPathError(query, e), None, sys.exc_info()[2]
 
 
 def register_extensions():

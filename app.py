@@ -54,8 +54,8 @@ def benchmark_list():
     try:
         query = get_valid_query_or_throw()
     except mcbench.xpath.XPathError as e:
-        flask.flash('XPath error: %s' % e.message)
-        return redirect('index')
+        flask.flash(str(e))
+        return redirect('index', query=e.query)
 
     all_benchmarks = mcbench_client.get_all_benchmarks()
 
@@ -81,11 +81,12 @@ def benchmark_list():
 @app.route('/benchmark/<name>', methods=['GET'])
 def benchmark(name):
     benchmark = mcbench_client.get_benchmark_by_name(name)
+
     try:
         query = get_valid_query_or_throw()
     except mcbench.xpath.XPathError as e:
-        flask.flash('XPath error: %s' % e.message)
-        return redirect('benchmark', name=name)
+        flask.flash(str(e))
+        query = None
 
     files = list(benchmark.get_files())
     hl_lines = benchmark.get_matching_lines(query)
