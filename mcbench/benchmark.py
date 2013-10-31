@@ -56,6 +56,9 @@ class Benchmark(object):
         self.name = name if name is not None else data['name']
         self.data = data
 
+    def __getattr__(self, attr):
+        return self.data[attr]
+
     def get_files(self):
         root = os.path.join(self.data_root, self.name)
         for dirpath, _, files in os.walk(root):
