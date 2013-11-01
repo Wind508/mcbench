@@ -63,8 +63,13 @@ def benchmark_list():
         return flask.render_template('list.html', benchmarks=all_benchmarks)
 
     start = time.time()
-    benchmarks, matches_by_benchmark, num_matches = (
-        all_benchmarks.get_num_matches(query))
+    try:
+        benchmarks, matches_by_benchmark, num_matches = (
+            all_benchmarks.get_num_matches(query))
+    except mcbench.xpath.XPathError as e:
+        flask.flash(str(e))
+        return redirect('index', query=e.query)
+
     elapsed_time = time.time() - start
     benchmarks.sort(key=lambda b: matches_by_benchmark[b.name], reverse=True)
 
