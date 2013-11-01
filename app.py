@@ -82,12 +82,13 @@ def benchmark(name):
 
     try:
         query = get_valid_query_or_throw()
+        hl_lines = benchmark.get_matching_lines(query)
     except mcbench.xpath.XPathError as e:
         flask.flash(str(e))
         query = None
+        hl_lines = benchmark.get_matching_lines(None)
 
     files = list(benchmark.get_files())
-    hl_lines = benchmark.get_matching_lines(query)
     num_matches = sum(len(v['m']) for v in hl_lines.values())
 
     return flask.render_template(

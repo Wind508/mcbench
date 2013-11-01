@@ -10,7 +10,19 @@ class XPathError(Exception):
         self.cause = cause
 
     def __str__(self):
-        return '%s: %s' % (self.cause.__class__.__name__, self.cause.msg)
+        return '%s: %s' % (self.cause.__class__.__name__, self.cause.message)
+
+
+class XPathQuery(object):
+    def __init__(self, query, compiled_query):
+        self.query = query
+        self.compiled_query = compiled_query
+
+    def __call__(self, xml):
+        try:
+            return self.compiled_query(xml)
+        except lxml.etree.XPathError as e:
+            raise XPathError(self.query, e), None, sys.exc_info()[2]
 
 
 def parse_xml_filename(filename):
@@ -19,7 +31,7 @@ def parse_xml_filename(filename):
 
 def compile(query):
     try:
-        return lxml.etree.XPath(query)
+        return XPathQuery(query, lxml.etree.XPath(query))
     except lxml.etree.XPathError as e:
         raise XPathError(query, e), None, sys.exc_info()[2]
 
