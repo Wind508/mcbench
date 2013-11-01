@@ -95,5 +95,13 @@ def benchmark(name):
         files=files,
     )
 
+@app.route('/save_query', methods=['POST'])
+def save_query():
+    xpath = flask.request.values['xpath']
+    name = flask.request.values['name']
+    query = mcbench.query.Query(xpath, name)
+    mcbench_client.insert_query(query)
+    return redirect('index')
+
 if __name__ == "__main__":
     app.run(debug=True)
