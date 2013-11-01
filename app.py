@@ -6,16 +6,6 @@ import mcbench.client
 import mcbench.highlighters
 import mcbench.xpath
 
-EXAMPLE_QUERIES = (
-    ('Calls to eval', "//ParameterizedExpr[is_call('eval')]"),
-    ('Calls to feval with a string literal target',
-     "//ParameterizedExpr[is_call('feval') and ./*[position()=2 and name(.)='StringLiteralExpr']]"),
-    ('Copy statements inside loops', "//ForStmt//AssignStmt[./*[position()=1 and name(.)='NameExpr'] and ./*[position()=2 and name(.)='NameExpr' and ./@kind='VAR']]"),
-    ('Recursive calls', '//ParameterizedExpr[is_call(ancestor::Function/@name)]'),
-    ('Functions with multiple return values',
-     "//Function[./OutputParamList[count(Name) > 1]]"),
-)
-
 mcbench.xpath.register_extensions()
 
 app = flask.Flask(__name__)
@@ -41,7 +31,8 @@ def get_valid_query_or_throw():
 
 @app.route('/', methods=['GET'])
 def index():
-    return flask.render_template('index.html', examples=EXAMPLE_QUERIES)
+    queries = mcbench_client.get_all_queries()
+    return flask.render_template('index.html', queries=queries)
 
 
 @app.route('/help', methods=['GET'])

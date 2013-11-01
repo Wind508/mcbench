@@ -1,6 +1,7 @@
 import redis
 
 import mcbench.benchmark
+import mcbench.query
 
 
 class BenchmarkDoesNotExist(Exception):
@@ -8,6 +9,10 @@ class BenchmarkDoesNotExist(Exception):
 
 
 class BenchmarkAlreadyExists(Exception):
+    pass
+
+
+class QueryDoesNotExist(Exception):
     pass
 
 
@@ -47,6 +52,22 @@ class McBenchClient(object):
         self.redis.set('name:%s:id' % benchmark.name, benchmark_id)
         data = dict(benchmark.data, tags=','.join(benchmark.data['tags']))
         self.redis.hmset('benchmark:%s' % benchmark_id, data)
+
+    def get_query_by_id(self, query_id):
+        query_id = str(query_id)
+        data = self.redis.hgetall('query:%s' % query_id)
+        if not data:
+            raise QueryDoesNotExist
+        return mcbench.query.Query(data['xpath'], data['name'])
+
+    def get_all_queries(self):
+        num_queries = int(self.redis.get('global:next_query_id'))
+        return [self.get_query_by_id(id) for id in xrange(1, num_queries + 1)]
+
+    def insert_query(self, query):
+        query_id = self.redis.incr('global:next_query_id')
+        data = dict(name=query.name, xpath=query.xpath)
+        self.redis.hmset('query:%s' % query_id, data)
 
 
 def create_for_app(app):
