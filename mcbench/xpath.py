@@ -50,12 +50,11 @@ def is_call(context, *names):
 
     called_name = node[0][0].get('nameId')
 
-    # Could this function like
+    # Could call this function like
+    # is_call('eval') -> names is a string
+    if isinstance(names, basestring):
+        return called_name == names
     # is_call('eval', 'feval') -> names is a tuple of strings
     # is_call(//some/sequence) -> names[0] is a list of strings
-    for name in names:
-        if isinstance(name, basestring) and called_name == name:
-            return True
-        elif any(called_name == n for n in name):
-            return True
-    return False
+    names = names[0] if isinstance(names[0], list) else names
+    return any(called_name == name for name in names)
