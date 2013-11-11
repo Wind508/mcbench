@@ -56,7 +56,7 @@ def benchmark_list():
     try:
         query = get_valid_query_or_throw()
     except mcbench.xpath.XPathError as e:
-        flask.flash(str(e))
+        flask.flash(str(e), 'error')
         return redirect('index', query=e.query)
 
     all_benchmarks = mcbench_client.get_all_benchmarks()
@@ -69,7 +69,7 @@ def benchmark_list():
         benchmarks, matches_by_benchmark, num_matches = (
             all_benchmarks.get_num_matches(query))
     except mcbench.xpath.XPathError as e:
-        flask.flash(str(e))
+        flask.flash(str(e), 'error')
         return redirect('index', query=e.query)
 
     elapsed_time = time.time() - start
@@ -91,7 +91,7 @@ def benchmark(name):
         query = get_valid_query_or_throw()
         hl_lines = benchmark.get_matching_lines(query)
     except mcbench.xpath.XPathError as e:
-        flask.flash(str(e))
+        flask.flash(str(e), 'error')
         query = None
         hl_lines = benchmark.get_matching_lines(None)
 
@@ -111,7 +111,7 @@ def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
     mcbench_client.insert_query(xpath, name)
-    flask.flash("Query '%s' successfully saved." % name)
+    flask.flash("Query '%s' successfully saved." % name, 'info')
     return redirect('index')
 
 @app.route('/delete_query', methods=['POST'])
@@ -119,7 +119,7 @@ def delete_query():
     query_id = flask.request.values['id']
     query = mcbench_client.get_query_by_id(query_id)
     mcbench_client.delete_query(query_id)
-    flask.flash("Query '%s' successfully deleted." % query.name)
+    flask.flash("Query '%s' successfully deleted." % query.name, 'info')
     return redirect('index')
 
 if __name__ == "__main__":

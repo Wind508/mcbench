@@ -45,12 +45,12 @@
            alt="Fork me on GitHub" /></a>
     </nav>
 
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=True) %}
     {% if messages %}
     <div class="container">
       <div class="row">
-        {% for message in messages %}
-        <div class="alert alert-danger alert-dismissable">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ {'error': 'danger', 'info': 'success'}[category] }} alert-dismissable">
           <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
           {{ message }}
         </div>
