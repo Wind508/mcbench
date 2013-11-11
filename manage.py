@@ -23,7 +23,7 @@ EXAMPLE_QUERIES = (
 
 
 @manager.command
-def load_manifest(manifest):
+def load_manifest(manifest, mcbench_client=mcbench_client):
     data_root = os.path.dirname(manifest)
     with open(manifest) as f:
         manifest = json.load(f)
@@ -32,7 +32,7 @@ def load_manifest(manifest):
             mcbench_client.insert_benchmark(benchmark)
 
 @manager.command
-def load_example_queries():
+def load_example_queries(mcbench_client=mcbench_client):
     for name, xpath in EXAMPLE_QUERIES:
         query = mcbench.query.Query(xpath, name)
         mcbench_client.insert_query(query)
