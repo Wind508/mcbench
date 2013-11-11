@@ -41,7 +41,7 @@ class McBenchClient(object):
         pipeline = self.redis.pipeline()
         for id in ids:
             pipeline.hgetall('%s:%s' % (kind, id))
-        for data in pipeline.execute():
+        for id, data in zip(ids, pipeline.execute()):
             if data:
                 yield f(id, data)
 
@@ -93,6 +93,9 @@ class McBenchClient(object):
         query_id = self.redis.incr('global:next_query_id')
         data = dict(name=name, xpath=xpath)
         self.redis.hmset('query:%s' % query_id, data)
+
+    def delete_query(self, query_id):
+        return bool(self.redis.delete('query:%s' % query_id))
 
 
 def create_for_app(app):

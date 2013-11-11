@@ -16,6 +16,16 @@ app.jinja_env.filters['pluralize'] = lambda n, s='s': s if n != 1 else ''
 
 mcbench_client = mcbench.client.create_for_app(app)
 
+EXAMPLE_QUERIES = (
+    ('Calls to eval', "//ParameterizedExpr[is_call('eval')]"),
+    ('Calls to feval with a string literal target',
+     "//ParameterizedExpr[is_call('feval') and ./*[position()=2 and name(.)='StringLiteralExpr']]"),
+    ('Copy statements inside loops', "//ForStmt//AssignStmt[./*[position()=1 and name(.)='NameExpr'] and ./*[position()=2 and name(.)='NameExpr' and ./@kind='VAR']]"),
+    ('Recursive calls', '//ParameterizedExpr[is_call(ancestor::Function/@name)]'),
+    ('Functions with multiple return values',
+     "//Function[./OutputParamList[count(Name) > 1]]"),
+)
+
 
 def redirect(url_name, *args, **kwargs):
     return flask.redirect(flask.url_for(url_name, *args, **kwargs))
@@ -32,7 +42,8 @@ def get_valid_query_or_throw():
 @app.route('/', methods=['GET'])
 def index():
     queries = mcbench_client.get_all_queries()
-    return flask.render_template('index.html', queries=queries)
+    return flask.render_template(
+        'index.html', examples=EXAMPLE_QUERIES, queries=queries)
 
 
 @app.route('/help', methods=['GET'])
@@ -100,6 +111,15 @@ def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
     mcbench_client.insert_query(xpath, name)
+    flask.flash("Query '%s' successfully saved." % name)
+    return redirect('index')
+
+@app.route('/delete_query', methods=['POST'])
+def delete_query():
+    query_id = flask.request.values['id']
+    query = mcbench_client.get_query_by_id(query_id)
+    mcbench_client.delete_query(query_id)
+    flask.flash("Query '%s' successfully deleted." % query.name)
     return redirect('index')
 
 if __name__ == "__main__":

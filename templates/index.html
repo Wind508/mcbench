@@ -15,15 +15,29 @@
 
   <div class="container">
     <div class="row">
-    <h1>Try some of these queries:</h1>
+    <h1>Try some of these examples:</h1>
+    <table class="table">
+    {% for name, xpath in examples %}
+    <tr><td>{{ name }}</td><td><a href="{{ url_for('benchmark_list', query=xpath) }}">{{ xpath }}</a></td></tr>
+    {% endfor %}
+    </table>
+ 
+    <h1>Or these user-submitted queries:</h1>
+    <form method="post" action="{{ url_for('delete_query') }}">
     <table class="table">
     {% for query in queries %}
     <tr>
     <td>{{ query.name }}</td>
     <td><a href="{{ url_for('benchmark_list', query=query.xpath) }}">{{ query.xpath }}</a></td>
+    <td>
+    <button name="id" type="submit" value="{{ query.id }}" class="btn btn-xs btn-danger">
+      Delete <span class="glyphicon glyphicon-trash"></span>
+    </button>
+    </td>
     </tr>
     {% endfor %}
     </table>
+    </form>
     </div>
   </div>
 
