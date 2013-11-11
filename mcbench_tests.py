@@ -5,6 +5,7 @@ import fakeredis
 import manage
 import mcbench.client
 
+
 class McBenchTestCase(unittest.TestCase):
     def setUp(self):
         self.redis = fakeredis.FakeStrictRedis()
@@ -30,6 +31,11 @@ class McBenchTestCase(unittest.TestCase):
     def test_get_nonexistent_benchmark(self):
         with self.assertRaises(mcbench.client.BenchmarkDoesNotExist):
             self.client.get_benchmark_by_name('does-not-exist')
+
+    def test_simple_query(self):
+        benchmarks = self.client.get_all_benchmarks()
+        _, _, total_matches = benchmarks.get_num_matches('//ForStmt')
+        self.assertEqual(16, total_matches)
 
 if __name__ == '__main__':
     unittest.main()
