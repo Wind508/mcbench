@@ -24,7 +24,7 @@
  
     <h1>Or these user-submitted queries:</h1>
     <form method="post" action="{{ url_for('delete_query') }}">
-    <table class="table">
+    <table id="user-queries" class="table">
     {% for query in queries %}
     <tr>
     <td>{{ query.name }}</td>
@@ -42,4 +42,43 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{{ url_for('static', filename='js/bootbox.min.js') }}"></script>
+<script>
+$(function() {
+  function bootbox_confirm(title, callback) {
+    bootbox.dialog({
+      message: title,
+      onEscape: function() { return callback(false); },
+      buttons: {
+        'Cancel': {
+          className: 'btn-default',
+          callback: function() { return callback(false); },
+        },
+        'OK': {
+          className: 'btn-danger',
+          callback: function() { return callback(true); },
+        },
+      },
+    });
+  };
+  $('#user-queries tr').each(function() {
+    var query_name = $(this).find('td:first').text();
+    $(this).find('td button').click(function(e, confirmed) {
+      if (confirmed) {
+        return;
+      }
+      e.preventDefault();
+      var self = this;
+      bootbox_confirm('Are you sure you want to delete "' + query_name + '"?', function(result) {
+        if (result) {
+          $(self).trigger('click', true);
+        }
+      });
+    });
+  });
+});
+</script>
 {% endblock %}
