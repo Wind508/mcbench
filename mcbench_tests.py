@@ -4,6 +4,7 @@ import fakeredis
 
 import manage
 import mcbench.client
+import mcbench.xpath
 
 
 class McBenchTestCase(unittest.TestCase):
@@ -36,6 +37,11 @@ class McBenchTestCase(unittest.TestCase):
         benchmarks = self.client.get_all_benchmarks()
         _, _, total_matches = benchmarks.get_num_matches('//ForStmt')
         self.assertEqual(16, total_matches)
+
+    def test_malformed_query(self):
+        benchmarks = self.client.get_all_benchmarks()
+        with self.assertRaises(mcbench.xpath.XPathError):
+            benchmarks.get_num_matches(r'\ForStmt')
 
 if __name__ == '__main__':
     unittest.main()

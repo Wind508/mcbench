@@ -5,9 +5,9 @@ import lxml.etree
 
 class XPathError(Exception):
     def __init__(self, query, cause):
-        super(XPathError, self).__init__()
         self.query = query
         self.cause = cause
+        super(XPathError, self).__init__(query, cause)
 
     def __str__(self):
         return '%s: %s' % (self.cause.__class__.__name__, self.cause.message)
