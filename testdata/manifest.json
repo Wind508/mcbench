@@ -1,0 +1,55 @@
+{
+  "projects": [
+    {
+      "url": "http://www.mathworks.com/matlabcentral/fileexchange/8636-emgm",
+      "author": "Patrick Tsui",
+      "author_url": "http://www.mathworks.com/matlabcentral/fileexchange/authors/20228",
+      "date_submitted": "04 Oct 2005",
+      "date_updated": "06 Mar 2006",
+      "name": "8636-emgm",
+      "summary": "An expectation maximization algorithm for learning a multi-dimensional Gaussian mixture.",
+      "tags": [
+        "em",
+        "expectation maximization",
+        "gaussian mixture",
+        "hi",
+        "how to save clusters membership",
+        "probability",
+        "statistics",
+        "thank you so much for this tool how can i save clusters membersh"
+      ],
+      "title": "EM_GM"
+    },
+    {
+      "url": "http://www.mathworks.com/matlabcentral/fileexchange/33851-wind-barb-plotter",
+      "author": "Nicholas",
+      "author_url": "http://www.mathworks.com/matlabcentral/fileexchange/authors/200806",
+      "date_submitted": "21 Nov 2011",
+      "date_updated": "28 Nov 2011",
+      "name": "33851-wind-barb-plotter",
+      "summary": "Plots wind barbs (in knots) using Matlab's mapping toolbox.",
+      "tags": [
+        "earth science",
+        "wind",
+        "wind barbs",
+        "wind vectors"
+      ],
+      "title": "Wind barb plotter"
+    },
+    {
+      "url": "http://www.mathworks.com/matlabcentral/fileexchange/1888-repmf",
+      "author": "Hiten Shah",
+      "author_url": "http://www.mathworks.com/matlabcentral/fileexchange/authors/5298",
+      "date_submitted": "25 Jun 2002",
+      "date_updated": "26 Jun 2002",
+      "name": "1888-repmf",
+      "summary": "REplace a Membership Function in the FIS.",
+      "tags": [
+        "fuzzy logic",
+        "neural networks",
+        "replace membership function"
+      ],
+      "title": "repmf"
+    }
+  ]
+}
