@@ -1,5 +1,6 @@
 class Query(object):
-    def __init__(self, xpath, name=None):
+    def __init__(self, id, xpath, name=None):
+        self.id = id
         self.xpath = xpath
         self.name = name
 

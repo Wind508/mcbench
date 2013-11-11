@@ -12,6 +12,7 @@ class McBenchTestCase(unittest.TestCase):
         self.redis = fakeredis.FakeStrictRedis()
         self.client = mcbench.client.McBenchClient(self.redis, 'testdata')
         manage.load_manifest('testdata/manifest.json', self.client)
+        manage.load_example_queries(self.client)
 
     def tearDown(self):
         self.redis.flushdb()
@@ -28,6 +29,8 @@ class McBenchTestCase(unittest.TestCase):
         self.assertEqual('repmf', next(repmf.get_files()).name)
         self.assertEqual('EM_GM', next(emgm.get_files()).name)
         self.assertEqual('windbarbm', next(plotter.get_files()).name)
+
+        self.assertEqual(5, len(self.client.get_all_queries()))
 
     def test_get_nonexistent_benchmark(self):
         with self.assertRaises(mcbench.client.BenchmarkDoesNotExist):

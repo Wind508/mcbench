@@ -99,8 +99,7 @@ def benchmark(name):
 def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
-    query = mcbench.query.Query(xpath, name)
-    mcbench_client.insert_query(query)
+    mcbench_client.insert_query(xpath, name)
     return redirect('index')
 
 if __name__ == "__main__":

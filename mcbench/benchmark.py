@@ -50,8 +50,9 @@ class File(object):
 
 
 class Benchmark(object):
-    def __init__(self, data_root, name=None, data=None):
+    def __init__(self, id, data_root, name=None, data=None):
         assert not (name is None and data is None)
+        self.id = id
         self.data_root = data_root
         self.name = name if name is not None else data['name']
         self.data = data
@@ -85,8 +86,8 @@ class Benchmark(object):
         return '<Benchmark: %s>' % self.name
 
 
-def get_num_matches_worker((data_root, name, query)):
-    return Benchmark(data_root, name).get_num_matches(query)
+def get_num_matches_worker((id, data_root, name, query)):
+    return Benchmark(id, data_root, name).get_num_matches(query)
 
 
 class BenchmarkSet(list):
@@ -98,7 +99,7 @@ class BenchmarkSet(list):
         pool = multiprocessing.Pool(processes=32)
         results = pool.map(
             get_num_matches_worker,
-            ((self.data_root, b.name, query) for b in self))
+            ((b.id, self.data_root, b.name, query) for b in self))
         pool.close()
         return results
 

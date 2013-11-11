@@ -23,25 +23,27 @@ class McBenchClient(object):
         self.redis = redis
         self.data_root = data_root
 
-    def _make_benchmark(self, data):
+    def _make_benchmark(self, id, data):
         data = dict(
             data, author=data['author'].decode('utf-8'),
             summary=data['summary'].decode('utf-8'),
             tags=[tag.decode('utf-8') for tag in data['tags'].split(',')],
             title=data['title'].decode('utf-8'))
-        return mcbench.benchmark.Benchmark(self.data_root, data=data)
+        return mcbench.benchmark.Benchmark(id, self.data_root, data=data)
 
     def _make_benchmark_set(self, benchmarks):
         return mcbench.benchmark.BenchmarkSet(self.data_root, benchmarks)
 
-    def _make_query(self, data):
-        return mcbench.query.Query(data['xpath'], data['name'])
+    def _make_query(self, id, data):
+        return mcbench.query.Query(id, data['xpath'], data['name'])
 
     def _get_multiple_by_id(self, kind, ids, f):
         pipeline = self.redis.pipeline()
         for id in ids:
             pipeline.hgetall('%s:%s' % (kind, id))
-        return itertools.imap(f, itertools.ifilter(bool, pipeline.execute()))
+        for data in pipeline.execute():
+            if data:
+                yield f(id, data)
 
     def get_benchmarks_by_id(self, ids):
         return self._make_benchmark_set(
@@ -55,7 +57,7 @@ class McBenchClient(object):
         data = self.redis.hgetall('benchmark:%s' % benchmark_id)
         if not data:
             raise BenchmarkDoesNotExist
-        return self._make_benchmark(data)
+        return self._make_benchmark(benchmark_id, data)
 
     def get_benchmark_by_name(self, name):
         benchmark_id = self.redis.get('name:%s:id' % name)
@@ -67,13 +69,13 @@ class McBenchClient(object):
         num_benchmarks = int(self.redis.get('global:next_benchmark_id'))
         return self.get_benchmarks_by_id(xrange(1, num_benchmarks + 1))
 
-    def insert_benchmark(self, benchmark):
-        benchmark_id = self.redis.get('name:%s:id' % benchmark.name)
+    def insert_benchmark(self, data):
+        benchmark_id = self.redis.get('name:%s:id' % data['name'])
         if benchmark_id is not None:
             raise BenchmarkAlreadyExists
         benchmark_id = self.redis.incr('global:next_benchmark_id')
-        self.redis.set('name:%s:id' % benchmark.name, benchmark_id)
-        data = dict(benchmark.data, tags=','.join(benchmark.data['tags']))
+        self.redis.set('name:%s:id' % data['name'], benchmark_id)
+        data = dict(data, tags=','.join(data['tags']))
         self.redis.hmset('benchmark:%s' % benchmark_id, data)
 
     def get_query_by_id(self, query_id):
@@ -81,15 +83,15 @@ class McBenchClient(object):
         data = self.redis.hgetall('query:%s' % query_id)
         if not data:
             raise QueryDoesNotExist
-        return self._make_query(data)
+        return self._make_query(query_id, data)
 
     def get_all_queries(self):
         num_queries = int(self.redis.get('global:next_query_id'))
         return self.get_queries_by_id(xrange(1, num_queries + 1))
 
-    def insert_query(self, query):
+    def insert_query(self, xpath, name):
         query_id = self.redis.incr('global:next_query_id')
-        data = dict(name=query.name, xpath=query.xpath)
+        data = dict(name=name, xpath=xpath)
         self.redis.hmset('query:%s' % query_id, data)
 
 
