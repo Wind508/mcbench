@@ -39,6 +39,10 @@ def compile(query):
 def register_extensions():
     ns = lxml.etree.FunctionNamespace(None)
     ns['is_call'] = is_call
+    ns['num_args'] = num_args
+    ns['arg'] = arg
+    ns['lhs'] = lhs
+    ns['rhs'] = rhs
 
 
 def is_call(context, *names):
@@ -47,6 +51,9 @@ def is_call(context, *names):
         return False
     if node[0].tag != 'NameExpr' or node[0].get('kind') != 'FUN':
         return False
+    # no-arg is_call() returns whether this is a call to any function
+    if not names:
+        return True
 
     called_name = node[0][0].get('nameId')
 
@@ -58,3 +65,18 @@ def is_call(context, *names):
     # is_call(//some/sequence) -> names[0] is a list of strings
     names = names[0] if isinstance(names[0], list) else names
     return any(called_name == name for name in names)
+
+def num_args(context):
+    node = context.context_node
+    if node.tag != 'ParameterizedExpr':
+        return 0
+    return len(node) - 1
+
+def arg(context, index):
+    return context.context_node[int(index)]
+
+def lhs(context):
+    return context.context_node[0]
+
+def rhs(context):
+    return context.context_node[1]

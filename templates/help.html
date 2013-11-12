@@ -17,10 +17,15 @@
   <h3>Extensions</h3>
   <p>McBench introduces some XPath extensions to make queries more convenient.<p>
   <ul>
+    <li>In the context of an <code>AssignStmt</code>, <code>lhs()</code> and <code>rhs()</code> get at the
+    left and right hand sides, respectively.</li>
+    <li>In the context of a <code>ParameterizedExpr</code>, <code>num_args()</code> returns the number of
+    arguments, and <code>arg(i)</code> returns the argument at index <code>i</code> (starting from 1).</li>
     <li><code>is_call(names)</code> is a predicate that returns true if the node
     represents a call to a function whose name is in <code>names</code>, which may be
-    an XPath path expression or a comma-separated list of string literals. Some examples:
+    an XPath path expression or a (possibly empty) comma-separated list of string literals. Some examples:
     <ul>
+      <li><code>//ParameterizedExpr[is_call()]</code> selects all function calls.</li>
       <li><code>//ParameterizedExpr[is_call('eval', 'feval')]</code> selects all calls
       to either <code>eval</code> or <code>feval</code>.</li>
       <li><code>//ParameterizedExpr[is_call(ancestor::Function/@name)]</code> selects
