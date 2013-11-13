@@ -43,6 +43,7 @@ def register_extensions():
     ns['arg'] = arg
     ns['lhs'] = lhs
     ns['rhs'] = rhs
+    ns['target'] = target
 
 
 def is_call(context, *names):
@@ -80,3 +81,6 @@ def lhs(context):
 
 def rhs(context):
     return context.context_node[1]
+
+def target(context):
+    return context.context_node[0]

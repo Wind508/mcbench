@@ -17,6 +17,8 @@
   <h3>Extensions</h3>
   <p>McBench introduces some XPath extensions to make queries more convenient.<p>
   <ul>
+    <li>In the context of a <code>CellIndexExpr</code>, <code>DotExpr</code>, or <code>ParameterizedExpr</code>,
+    <code>target()</code> returns the target (aka receiver) of the expression.</li>
     <li>In the context of an <code>AssignStmt</code>, <code>lhs()</code> and <code>rhs()</code> get at the
     left and right hand sides, respectively.</li>
     <li>In the context of a <code>ParameterizedExpr</code>, <code>num_args()</code> returns the number of
