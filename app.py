@@ -81,7 +81,8 @@ def benchmark_list():
         benchmarks=benchmarks,
         elapsed_time=elapsed_time,
         matches_by_benchmark=matches_by_benchmark,
-        num_matches=num_matches)
+        num_matches=num_matches,
+        total_benchmarks=len(all_benchmarks))
 
 
 @app.route('/benchmark/<name>', methods=['GET'])

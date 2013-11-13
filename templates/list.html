@@ -16,8 +16,10 @@
   {% if not query %}
   <h3>Found {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }}.</h3>
   {% else %}
-  <h3>Found {{ num_matches }} occurrence{{ num_matches|pluralize }} of {{ query }}
-      across {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }}
+  <h3>{{ query }}</h3>
+  <h3>Found {{ num_matches }} occurrence{{ num_matches|pluralize }}
+      across {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }} 
+      (out of {{ total_benchmarks }}, {{ '%.2f%%'|format(100.0 * benchmarks|length / total_benchmarks)}})
       ({{ '%.2f seconds'|format(elapsed_time) }}).</h3>
 
   <form method="post" action="{{ url_for('save_query') }}" class="form-inline">
