@@ -78,7 +78,7 @@ class Benchmark(object):
             return lines
         for f in self.get_files():
             for match in f.get_matches(query):
-                lines[f.name]['m'].append(match.get('line'))
+                lines[f.name]['m'].append(match.get('line', 1))
                 lines[f.name]['xml'].append(match.sourceline)
         return lines
 
