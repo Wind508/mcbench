@@ -10,7 +10,7 @@
   <div class="row">
     <div class="col-lg-12">
       <h1>Try an XPath query against this benchmark.</h1>
-      {% include "search.html" %}
+      {{ utils.search_bar(url_for('benchmark', name=benchmark.name)) }}
     {% if request.args.get('query', '') %}
     <h3>Found {{ utils.plural('occurrence', num_matches) }} of this query in this benchmark.</h3>
     {% endif %}

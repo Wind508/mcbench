@@ -12,7 +12,7 @@
 <div class="container">
   <div class="row">
     <div class="span12">
-  {% include "search.html" %}
+    {{ utils.search_bar(url_for('benchmark_list')) }}
 {% with query = request.values.get('query', '') %}
   {% if not query %}
   <h3>Found {{ utils.plural('benchmark', benchmarks|length) }}.</h3>

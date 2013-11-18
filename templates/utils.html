@@ -5,3 +5,13 @@
 {% macro plural(word, num) -%}
   {{ num }} {{ word }}{% if num != 1 -%}s{% endif %}
 {%- endmacro %}
+
+{% macro search_bar(url) -%}
+<form method="get" action="{{ url }}" class="form-inline">
+  <input name="query" type="search" class="form-control input-lg"
+         style="width:80%;" value="{{ request.values.get('query', '') }}" />
+  <button type="submit" class="btn btn-danger btn-lg">
+    {{ icon('search') }}
+  </button>
+</form>
+{%- endmacro %}
