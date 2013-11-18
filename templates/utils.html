@@ -1,0 +1,7 @@
+{% macro icon(icon, text='') -%}
+  {% if text %}{{ text }} {% endif %}<span class="glyphicon glyphicon-{{ icon }}"></span>
+{%- endmacro %}
+
+{% macro plural(word, num) -%}
+  {{ num }} {{ word }}{% if num != 1 -%}s{% endif %}
+{%- endmacro %}

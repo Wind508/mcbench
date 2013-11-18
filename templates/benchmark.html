@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'utils.html' as utils %}
 
 {% block extrahead %}
 <link href="{{ url_for('static', filename='css/highlight.css') }}" rel="stylesheet">
@@ -8,16 +9,11 @@
 <div class="container">
   <div class="row">
     <div class="col-lg-12">
-    {% with query = request.args.get('query', '') %}
       <h1>Try an XPath query against this benchmark.</h1>
-      <form method="get" action="{{ url_for('benchmark', name=benchmark.name) }}" class="form-inline">
-        <input name="query" type="search" class="form-control input-lg" style="width:80%;" value="{{ query }}" />
-        <button type="submit" class="btn btn-default btn-lg">Search</button>
-      </form>
-    {% if query %}
-    <h3>Found {{ num_matches }} occurrence{{ num_matches | pluralize }} of this query in this benchmark.</h3>
+      {% include "search.html" %}
+    {% if request.args.get('query', '') %}
+    <h3>Found {{ utils.plural('occurrence', num_matches) }} of this query in this benchmark.</h3>
     {% endif %}
-    {% endwith %}
     </div>
   </div>
 </div>

@@ -1,0 +1,9 @@
+{% import 'utils.html' as utils %}
+
+<form method="get" action="{{ url_for('benchmark_list') }}" class="form-inline">
+  <input name="query" type="search" class="form-control input-lg"
+         style="width:80%;" value="{{ request.values.get('query', '') }}" />
+  <button type="submit" class="btn btn-danger btn-lg">
+    {{ utils.icon('search') }}
+  </button>
+</form>

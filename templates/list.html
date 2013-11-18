@@ -1,9 +1,9 @@
 {% extends "base.html" %}
+{% import 'utils.html' as utils %}
+
 {% block extrahead %}
 <style>
 .benchmark .title { font-size: 1.8em; }
-.benchmark .author { font-size: 0.9em; margin-left: 5px; }
-.benchmark .tags { font-size: 0.9em; }
 .benchmark hr { margin: 0 auto 10px auto; }
 </style>
 {% endblock %}
@@ -12,38 +12,33 @@
 <div class="container">
   <div class="row">
     <div class="span12">
+  {% include "search.html" %}
 {% with query = request.values.get('query', '') %}
   {% if not query %}
-  <h3>Found {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }}.</h3>
+  <h3>Found {{ utils.plural('benchmark', benchmarks|length) }}.</h3>
   {% else %}
-  <h3>{{ query }}</h3>
-  <h3>Found {{ num_matches }} occurrence{{ num_matches|pluralize }}
-      across {{ benchmarks|length }} benchmark{{ benchmarks|length|pluralize }} 
+  <form method="post" action="{{ url_for('save_query') }}" class="form-inline" style="margin-top: 5px;">
+    <input name="name" type="text" class="form-control input-small"
+           placeholder="Name this query..." style="width: 20%" />
+    <input name="xpath" type="hidden" value="{{ query }}" />
+    <button type="submit" class="btn btn-danger btn-small">{{ utils.icon('floppy-save', text='Save') }}</span></button>
+  </form>
+  <h3>Found {{ utils.plural('occurrence', num_matches) }}
+      across {{ utils.plural('benchmark', benchmarks|length) }}
       (out of {{ total_benchmarks }}, {{ '%.2f%%'|format(100.0 * benchmarks|length / total_benchmarks)}})
       ({{ '%.2f seconds'|format(elapsed_time) }}).</h3>
-
-  <form method="post" action="{{ url_for('save_query') }}" class="form-inline">
-    <input name="name" type="text" class="form-control input-small"
-           placeholder="Name this query" style="width: 20%;" />
-    <input name="xpath" type="hidden" value="{{ query }}" />
-    <button type="submit" class="btn btn-default btn-small">Save</button>
-  </form>
   {% endif %}
     {% for benchmark in benchmarks %}
     <div class="benchmark">
+      {% if not loop.first %}<hr>{% endif %}
       <p>
-      <span class="title"><a href="{{ url_for('benchmark', name=benchmark.name, query=query) }}">{{ benchmark.title }}</a>
+      <span class="title"><a href="{{ url_for('benchmark', name=benchmark.name, query=query) }}">{{ benchmark.title }}</a></span>
       {% if query %}
-        {% with matches = matches_by_benchmark[benchmark.name] %}
-          ({{ matches }} occurrence{{ matches|pluralize }})
-        {% endwith %}
+        ({{ utils.plural('occurrence', matches_by_benchmark[benchmark.name]) }})
       {% endif %}
-      </span>
-      <span class="author">from <a href="{{ benchmark.author_url }}">{{ benchmark.author }}</a></span>
+      <span>&mdash; <a href="{{ benchmark.url }}">(view on file exchange)</a></span>
       </p>
-      <hr>
       <p class="summary">{{ benchmark.summary }}</p>
-      <p class="tags">tagged {{ benchmark.tags|join(', ') }}</p>
     </div>
     {% endfor %}
   </div>
