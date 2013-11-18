@@ -50,6 +50,10 @@ def index():
 def help():
     return flask.render_template('help.html')
 
+@app.route('/about', methods=['GET'])
+def about():
+    return flask.render_template('about.html')
+
 
 @app.route('/list', methods=['GET'])
 def benchmark_list():

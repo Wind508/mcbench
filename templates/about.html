@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <h1>About McBench</h1>
+    <p>McBench is a tool developed as part of the <a href="http://www.sable.mcgill.ca/mclab">McLab project</a>
+    at McGill University. It aims to give insight about how Matlab programmers actually use Matlab.
+    By performing structural queries against a large body of Matlab code, we can answer questions about how
+    often certain features are used, or identify common patterns, which can help guide the development of
+    compiler optimizations, virtual machines, and programmer tools (such as refactoring tools).</p>
+
+    <p>The application is written in <a href="http://python.org">Python</a>, using the <a href="http://flask.pocoo.org">Flask</a>
+    web framework, together with the <a href="http://lxml.de">lxml</a> toolkit for working with XML and XPath. It is
+    developed and maintained by <a href="https://github.com/isbadawi">Ismail Badawi</a>.
+  </div>
+</div>
+{% endblock %}
