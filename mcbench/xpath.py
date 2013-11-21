@@ -107,6 +107,14 @@ def target(context):
     return context.context_node[0]
 
 
+def is_stmt(context):
+    return context.context_node.tag.endswith('Stmt')
+
+
+def is_expr(context):
+    return context.context_node.tag.endswith('Expr')
+
+
 def register_extensions():
     ns = lxml.etree.FunctionNamespace(None)
     ns['is_call'] = is_call
@@ -115,3 +123,5 @@ def register_extensions():
     ns['lhs'] = lhs
     ns['rhs'] = rhs
     ns['target'] = target
+    ns['is_stmt'] = is_stmt
+    ns['is_expr'] = is_expr
