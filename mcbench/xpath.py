@@ -107,6 +107,11 @@ def target(context):
     return context.context_node[0]
 
 
+@expect('ForStmt')
+def loopvar(context):
+    return context.context_node[0][0][0].get('nameId')
+
+
 def is_stmt(context):
     return context.context_node.tag.endswith('Stmt')
 
@@ -123,5 +128,6 @@ def register_extensions():
     ns['lhs'] = lhs
     ns['rhs'] = rhs
     ns['target'] = target
+    ns['loopvar'] = loopvar
     ns['is_stmt'] = is_stmt
     ns['is_expr'] = is_expr
