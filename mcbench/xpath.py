@@ -48,20 +48,36 @@ class UnexpectedContext(Exception):
         return '%s called in %s context, expecting any of %s' % (
             self.f, self.context, ', '.join(self.expected))
 
+ns = lxml.etree.FunctionNamespace(None)
 
-def expect(*nodes):
-    def decorator(f):
+
+def extension(*nodes):
+    """Decorator to register a function as an xpath extension.
+
+    The optional nodes parameters are strings indicating the XML tags which
+    are valid context for this function. The function will automatically check
+    that the context is valid, throwing an UnexpectedContext exception if not.
+    """
+    def decorator(f, nodes=nodes):
         @functools.wraps(f)
-        def helper(context, *args):
+        def wrapper(context, *args):
             node = context.context_node
-            if node.tag not in nodes:
+            if nodes is not None and node.tag not in nodes:
                 raise UnexpectedContext(f.__name__, node.tag, nodes)
             return f(context, *args)
-        return helper
+        # This is the bit that does the registering.
+        ns[f.__name__] = wrapper
+        return wrapper
+
+    # Trick to allow writing @extension instead of @extension():
+    if len(nodes) == 1 and callable(nodes[0]):
+        # If the first argument is a function, then this function (extension)
+        # has to act as the decorator.
+        return decorator(nodes[0], None)
     return decorator
 
 
-@expect('ParameterizedExpr')
+@extension('ParameterizedExpr')
 def is_call(context, *names):
     node = context.context_node
     if node[0].tag != 'NameExpr' or node[0].get('kind') != 'FUN':
@@ -82,52 +98,42 @@ def is_call(context, *names):
     return any(called_name == name for name in names)
 
 
-@expect('ParameterizedExpr', 'CellIndexExpr')
+@extension('ParameterizedExpr', 'CellIndexExpr')
 def num_args(context):
     return len(context.context_node) - 1
 
 
-@expect('ParameterizedExpr', 'CellIndexExpr')
+@extension('ParameterizedExpr', 'CellIndexExpr')
 def arg(context, index):
     return context.context_node[int(index)]
 
 
-@expect('AssignStmt')
+@extension('AssignStmt')
 def lhs(context):
     return context.context_node[0]
 
 
-@expect('AssignStmt')
+@extension('AssignStmt')
 def rhs(context):
     return context.context_node[1]
 
 
-@expect('CellIndexExpr', 'DotExpr', 'ParameterizedExpr')
+@extension('CellIndexExpr', 'DotExpr', 'ParameterizedExpr')
 def target(context):
     return context.context_node[0]
 
 
-@expect('ForStmt')
+@extension('ForStmt')
 def loopvar(context):
     return context.context_node[0][0][0].get('nameId')
 
 
+@extension
 def is_stmt(context):
     return context.context_node.tag.endswith('Stmt')
 
 
+@extension
 def is_expr(context):
     return context.context_node.tag.endswith('Expr')
 
-
-def register_extensions():
-    ns = lxml.etree.FunctionNamespace(None)
-    ns['is_call'] = is_call
-    ns['num_args'] = num_args
-    ns['arg'] = arg
-    ns['lhs'] = lhs
-    ns['rhs'] = rhs
-    ns['target'] = target
-    ns['loopvar'] = loopvar
-    ns['is_stmt'] = is_stmt
-    ns['is_expr'] = is_expr
