@@ -44,7 +44,15 @@ class McBenchClient(object):
                 name varchar(200) not null,
                 xpath varchar(500) not null
             );
-            ''')
+
+            create table if not exists query_results (
+                id integer not null primary key autoincrement,
+                benchmark_id integer not null references benchmark (id),
+                query_id integer not null references query (id),
+                num_matches integer not null,
+                unique (benchmark_id, query_id)
+            );
+         ''')
 
     def _fetch(self, query, params=()):
         cursor = self.db.cursor()
@@ -107,13 +115,36 @@ class McBenchClient(object):
     def get_all_queries(self):
         return self._fetch('select * from query')
 
-    def insert_query(self, xpath, name):
-        self.db.execute(
+    def get_saved_query_results(self, query_id):
+        benchmarks = []
+        matches_by_benchmark = {}
+        num_matches = 0
+        for row in self._fetch(
+            '''select B.id, author, author_url, date_submitted, date_updated,
+                      name, summary, tags, title, url, num_matches
+            from benchmark as B
+            join query_results as R
+            on B.id = R.benchmark_id
+            where query_id=?''', (query_id,)):
+            benchmarks.append(self._make_benchmark(
+                {k: row[k] for k in row.keys() if k != 'num_matches'}))
+            matches_by_benchmark[row['name']] = row['num_matches']
+            num_matches += int(row['num_matches'])
+        return benchmarks, matches_by_benchmark, num_matches
+
+    def insert_query(self, xpath, name, results):
+        cursor = self.db.cursor()
+        cursor.execute(
             'insert into query (name, xpath) values(?, ?)', (name, xpath))
+        query_id = cursor.lastrowid
+        cursor.executemany('''insert into query_results
+            (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
+            itertools.imap(lambda p: (p.split(':')[0], query_id, p.split(':')[1]), results.split(',')))
         self.db.commit()
 
     def delete_query(self, query_id):
         self.db.execute('delete from query where id=?', (query_id,))
+        self.db.execute('delete from query_results where query_id=?', (query_id,))
         self.db.commit()
 
 

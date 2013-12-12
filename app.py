@@ -76,19 +76,24 @@ def benchmark_list():
         flask.flash(str(e), 'error')
         return redirect('index', query=e.query)
 
+    client = get_client()
     all_benchmarks = get_client().get_all_benchmarks()
 
     if query is None:
         return flask.render_template('list.html', benchmarks=all_benchmarks)
 
+    saved_query = flask.request.args.get('query_id') or None
     start = time.time()
-    try:
+    if saved_query is not None:
         benchmarks, matches_by_benchmark, num_matches = (
-            all_benchmarks.get_num_matches(query))
-    except mcbench.xpath.XPathError as e:
-        flask.flash(str(e), 'error')
-        return redirect('index', query=e.query)
-
+            client.get_saved_query_results(saved_query))
+    else:
+        try:
+            benchmarks, matches_by_benchmark, num_matches = (
+                all_benchmarks.get_num_matches(query))
+        except mcbench.xpath.XPathError as e:
+            flask.flash(str(e), 'error')
+            return redirect('index', query=e.query)
     elapsed_time = time.time() - start
     benchmarks.sort(key=lambda b: matches_by_benchmark[b.name], reverse=True)
 
@@ -129,7 +134,8 @@ def benchmark(name):
 def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
-    get_client().insert_query(xpath, name)
+    results = flask.request.values['results']
+    get_client().insert_query(xpath, name, results)
     flask.flash("Query '%s' successfully saved." % name, 'info')
     return redirect('index')
 
@@ -140,7 +146,7 @@ def delete_query():
     query_id = flask.request.values['id']
     query = client.get_query_by_id(query_id)
     client.delete_query(query_id)
-    flask.flash("Query '%s' successfully deleted." % query.name, 'info')
+    flask.flash("Query '%s' successfully deleted." % query['name'], 'info')
     return redirect('index')
 
 if __name__ == "__main__":

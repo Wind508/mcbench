@@ -26,7 +26,7 @@
     {% for query in queries %}
     <tr>
     <td>{{ query.name }}</td>
-    <td><a href="{{ url_for('benchmark_list', query=query.xpath) }}">{{ query.xpath }}</a></td>
+    <td><a href="{{ url_for('benchmark_list', query_id=query.id, query=query.xpath) }}">{{ query.xpath }}</a></td>
     <td>
     <button name="id" type="submit" value="{{ query.id }}" class="btn btn-xs btn-danger">
       {{ utils.icon('trash', text='Delete') }}
