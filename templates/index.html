@@ -15,15 +15,17 @@
     <div class="row">
     <h1>Try some of these examples:</h1>
     <table class="table">
-    {% for name, xpath in examples %}
-    <tr><td>{{ name }}</td><td><a href="{{ url_for('benchmark_list', query=xpath) }}">{{ xpath }}</a></td></tr>
+    {% for query in queries[:5] %}
+    <tr><td>{{ query.name }}</td>
+    <td><a href="{{ url_for('benchmark_list', query_id=query.id, query=query.xpath) }}">{{ query.xpath }}</a></td>
+    </tr>
     {% endfor %}
     </table>
  
     <h1>Or these user-submitted queries:</h1>
     <form method="post" action="{{ url_for('delete_query') }}">
     <table id="user-queries" class="table">
-    {% for query in queries %}
+    {% for query in queries[5:] %}
     <tr>
     <td>{{ query.name }}</td>
     <td><a href="{{ url_for('benchmark_list', query_id=query.id, query=query.xpath) }}">{{ query.xpath }}</a></td>

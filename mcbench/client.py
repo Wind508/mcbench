@@ -113,7 +113,7 @@ class McBenchClient(object):
         return query
 
     def get_all_queries(self):
-        return self._fetch('select * from query')
+        return list(self._fetch('select * from query'))
 
     def get_saved_query_results(self, query_id):
         benchmarks = []

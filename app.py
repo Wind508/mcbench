@@ -27,18 +27,6 @@ def teardown_client(exception):
         client.close()
 
 
-EXAMPLE_QUERIES = (
-    ('Calls to eval', "//ParameterizedExpr[is_call('eval')]"),
-    ('Calls to feval with a string literal target',
-     "//ParameterizedExpr[is_call('feval') and name(arg(1))='StringLiteralExpr']"),
-    ('Copy statements inside loops',
-     "//ForStmt//AssignStmt[name(lhs())='NameExpr' and name(rhs())='NameExpr' and rhs()/@kind='VAR']"),
-    ('Recursive calls', '//ParameterizedExpr[is_call(ancestor::Function/@name)]'),
-    ('Functions with multiple return values',
-     "//Function[./OutputParamList[count(Name) > 1]]"),
-)
-
-
 def redirect(url_name, *args, **kwargs):
     return flask.redirect(flask.url_for(url_name, *args, **kwargs))
 
@@ -54,8 +42,7 @@ def get_valid_query_or_throw():
 @app.route('/', methods=['GET'])
 def index():
     queries = get_client().get_all_queries()
-    return flask.render_template(
-        'index.html', examples=EXAMPLE_QUERIES, queries=queries)
+    return flask.render_template('index.html', queries=queries)
 
 
 @app.route('/help', methods=['GET'])
