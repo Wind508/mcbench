@@ -1,11 +1,37 @@
 import unittest
 
+import app
 import manage
 import mcbench.client
 import mcbench.xpath
 
 
-class McBenchTestCase(unittest.TestCase):
+class McBenchAppTestCase(unittest.TestCase):
+    def setUp(self):
+        app.app.config['DB_PATH'] = ':memory:'
+        app.app.config['TESTING'] = True
+        self.context = app.app.app_context()
+        self.context.push()
+        self.app = app.app.test_client()
+        manage.load_manifest('testdata/manifest.json', app.get_client())
+
+    def tearDown(self):
+        self.context.pop()
+
+    def test_index_page_renders_without_errors(self):
+        self.assertEqual(200, self.app.get('/').status_code)
+
+    def test_about_page_renders_without_errors(self):
+        self.assertEqual(200, self.app.get('/about').status_code)
+
+    def test_help_page_renders_without_errors(self):
+        self.assertEqual(200, self.app.get('/help').status_code)
+
+    def test_list_page_renders_without_errors(self):
+        self.assertEqual(200, self.app.get('/list').status_code)
+
+
+class McBenchClientTestCase(unittest.TestCase):
     def setUp(self):
         self.client = mcbench.client.create('testdata', ':memory:')
         manage.load_manifest('testdata/manifest.json', self.client)
