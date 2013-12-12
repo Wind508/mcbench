@@ -136,4 +136,3 @@ def is_stmt(context):
 @extension
 def is_expr(context):
     return context.context_node.tag.endswith('Expr')
-

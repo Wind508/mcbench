@@ -1,9 +1,7 @@
 import itertools
-
-import redis
+import sqlite3
 
 import mcbench.benchmark
-import mcbench.query
 
 
 class BenchmarkDoesNotExist(Exception):
@@ -19,90 +17,107 @@ class QueryDoesNotExist(Exception):
 
 
 class McBenchClient(object):
-    def __init__(self, redis, data_root):
-        self.redis = redis
+    def __init__(self, db, data_root):
+        self.db = db
         self.data_root = data_root
 
-    def _make_benchmark(self, id, data):
+    def close(self):
+        self.db.close()
+
+    def init_tables(self):
+        self.db.executescript('''
+            create table if not exists benchmark (
+                id integer not null primary key autoincrement,
+                author varchar(200) not null,
+                author_url varchar(200) not null,
+                date_submitted datetime not null,
+                date_updated datetime not null,
+                name varchar(200) unique not null,
+                summary varchar(500) not null,
+                tags varchar(1000) not null,
+                title varchar(500) not null,
+                url varchar(200) not null
+            );
+
+            create table if not exists query (
+                id integer not null primary key autoincrement,
+                name varchar(200) not null,
+                xpath varchar(500) not null
+            );
+            ''')
+
+    def _fetch(self, query, params=()):
+        cursor = self.db.cursor()
+        cursor.execute(query, params)
+        return cursor
+
+    def _fetchone(self, query, params=()):
+        return self._fetch(query, params).fetchone()
+
+    def _make_benchmark(self, data):
+        if data is None:
+            raise BenchmarkDoesNotExist
         data = dict(
-            data, author=data['author'].decode('utf-8'),
-            summary=data['summary'].decode('utf-8'),
-            tags=[tag.decode('utf-8') for tag in data['tags'].split(',')],
-            title=data['title'].decode('utf-8'))
-        return mcbench.benchmark.Benchmark(id, self.data_root, data=data)
+            data, author=data['author'], summary=data['summary'],
+            tags=data['tags'].split(','), title=data['title'])
+        return mcbench.benchmark.Benchmark(
+            data['id'], self.data_root, data=data)
 
     def _make_benchmark_set(self, benchmarks):
         return mcbench.benchmark.BenchmarkSet(self.data_root, benchmarks)
 
-    def _make_query(self, id, data):
-        return mcbench.query.Query(id, data['xpath'], data['name'])
-
-    def _get_multiple_by_id(self, kind, ids, f):
-        pipeline = self.redis.pipeline()
-        for id in ids:
-            pipeline.hgetall('%s:%s' % (kind, id))
-        for id, data in zip(ids, pipeline.execute()):
-            if data:
-                yield f(id, data)
-
-    def get_benchmarks_by_id(self, ids):
-        return self._make_benchmark_set(
-            self._get_multiple_by_id('benchmark', ids, self._make_benchmark))
-
-    def get_queries_by_id(self, ids):
-        return list(self._get_multiple_by_id('query', ids, self._make_query))
-
     def get_benchmark_by_id(self, benchmark_id):
-        benchmark_id = str(benchmark_id)
-        data = self.redis.hgetall('benchmark:%s' % benchmark_id)
-        if not data:
-            raise BenchmarkDoesNotExist
-        return self._make_benchmark(benchmark_id, data)
+        benchmark = self._fetchone(
+            'select * from benchmark where id=?', (benchmark_id,))
+        return self._make_benchmark(benchmark)
 
     def get_benchmark_by_name(self, name):
-        benchmark_id = self.redis.get('name:%s:id' % name)
-        if benchmark_id is None:
-            raise BenchmarkDoesNotExist
-        return self.get_benchmark_by_id(benchmark_id)
+        benchmark = self._fetchone(
+            'select * from benchmark where name=?', (name,))
+        return self._make_benchmark(benchmark)
+
+    def _benchmark_exists(self, name):
+        try:
+            self.get_benchmark_by_name(name)
+            return True
+        except BenchmarkDoesNotExist:
+            return False
 
     def get_all_benchmarks(self):
-        num_benchmarks = int(self.redis.get('global:next_benchmark_id'))
-        return self.get_benchmarks_by_id(xrange(1, num_benchmarks + 1))
+        return self._make_benchmark_set(itertools.imap(
+            self._make_benchmark, self._fetch('select * from benchmark')))
 
     def insert_benchmark(self, data):
-        benchmark_id = self.redis.get('name:%s:id' % data['name'])
-        if benchmark_id is not None:
+        if self._benchmark_exists(data['name']):
             raise BenchmarkAlreadyExists
-        benchmark_id = self.redis.incr('global:next_benchmark_id')
-        self.redis.set('name:%s:id' % data['name'], benchmark_id)
-        data = dict(data, tags=','.join(data['tags']))
-        self.redis.hmset('benchmark:%s' % benchmark_id, data)
+        params = (data['author'], data['author_url'], data['date_submitted'],
+                  data['date_updated'], data['name'], data['summary'],
+                  ','.join(data['tags']), data['title'], data['url'])
+        self.db.execute('''insert into benchmark (author, author_url,
+            date_submitted, date_updated, name, summary, tags, title, url)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?)''', params)
+        self.db.commit()
 
     def get_query_by_id(self, query_id):
-        query_id = str(query_id)
-        data = self.redis.hgetall('query:%s' % query_id)
-        if not data:
+        query = self._fetchone('select * from query where id=?', (query_id,))
+        if query is None:
             raise QueryDoesNotExist
-        return self._make_query(query_id, data)
+        return query
 
     def get_all_queries(self):
-        num_queries = int(self.redis.get('global:next_query_id'))
-        return self.get_queries_by_id(xrange(1, num_queries + 1))
+        return self._fetch('select * from query')
 
     def insert_query(self, xpath, name):
-        query_id = self.redis.incr('global:next_query_id')
-        data = dict(name=name, xpath=xpath)
-        self.redis.hmset('query:%s' % query_id, data)
+        self.db.execute(
+            'insert into query (name, xpath) values(?, ?)', (name, xpath))
+        self.db.commit()
 
     def delete_query(self, query_id):
-        return bool(self.redis.delete('query:%s' % query_id))
+        self.db.execute('delete from query where id=?', (query_id,))
+        self.db.commit()
 
 
-def create_for_app(app):
-    return create(app.config['DATA_ROOT'], app.config['REDIS_URL'])
-
-
-def create(data_root, redis_url=None):
-    if redis_url is None:
-        redis_url = 'redis://localhost:6379'
-    return McBenchClient(redis=redis.from_url(redis_url), data_root=data_root)
+def create(data_root, db_path):
+    db = sqlite3.connect(db_path)
+    db.row_factory = sqlite3.Row
+    return McBenchClient(db, data_root)

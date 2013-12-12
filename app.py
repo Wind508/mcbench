@@ -11,7 +11,21 @@ app.config.from_object('settings')
 app.jinja_env.filters['highlight_matlab'] = mcbench.highlighters.matlab
 app.jinja_env.filters['highlight_xml'] = mcbench.highlighters.xml
 
-mcbench_client = mcbench.client.create_for_app(app)
+
+def get_client():
+    client = flask.g.get('client', None)
+    if client is None:
+        flask.g.client = client = mcbench.client.create(
+            app.config['DATA_ROOT'], app.config['DB_PATH'])
+    return client
+
+
+@app.teardown_appcontext
+def teardown_client(exception):
+    client = flask.g.get('client', None)
+    if client is not None:
+        client.close()
+
 
 EXAMPLE_QUERIES = (
     ('Calls to eval', "//ParameterizedExpr[is_call('eval')]"),
@@ -39,7 +53,7 @@ def get_valid_query_or_throw():
 
 @app.route('/', methods=['GET'])
 def index():
-    queries = mcbench_client.get_all_queries()
+    queries = get_client().get_all_queries()
     return flask.render_template(
         'index.html', examples=EXAMPLE_QUERIES, queries=queries)
 
@@ -47,6 +61,7 @@ def index():
 @app.route('/help', methods=['GET'])
 def help():
     return flask.render_template('help.html')
+
 
 @app.route('/about', methods=['GET'])
 def about():
@@ -61,7 +76,7 @@ def benchmark_list():
         flask.flash(str(e), 'error')
         return redirect('index', query=e.query)
 
-    all_benchmarks = mcbench_client.get_all_benchmarks()
+    all_benchmarks = get_client().get_all_benchmarks()
 
     if query is None:
         return flask.render_template('list.html', benchmarks=all_benchmarks)
@@ -88,7 +103,7 @@ def benchmark_list():
 
 @app.route('/benchmark/<name>', methods=['GET'])
 def benchmark(name):
-    benchmark = mcbench_client.get_benchmark_by_name(name)
+    benchmark = get_client().get_benchmark_by_name(name)
 
     try:
         query = get_valid_query_or_throw()
@@ -109,19 +124,22 @@ def benchmark(name):
         files=files,
     )
 
+
 @app.route('/save_query', methods=['POST'])
 def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
-    mcbench_client.insert_query(xpath, name)
+    get_client().insert_query(xpath, name)
     flask.flash("Query '%s' successfully saved." % name, 'info')
     return redirect('index')
 
+
 @app.route('/delete_query', methods=['POST'])
 def delete_query():
+    client = get_client()
     query_id = flask.request.values['id']
-    query = mcbench_client.get_query_by_id(query_id)
-    mcbench_client.delete_query(query_id)
+    query = client.get_query_by_id(query_id)
+    client.delete_query(query_id)
     flask.flash("Query '%s' successfully deleted." % query.name, 'info')
     return redirect('index')
 

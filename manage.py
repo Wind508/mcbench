@@ -2,17 +2,20 @@ import json
 
 from flask.ext.script import Manager
 
+import app
 import mcbench.benchmark
-import mcbench.client
-import mcbench.query
-from app import app
 
-manager = Manager(app)
-mcbench_client = mcbench.client.create_for_app(app)
+manager = Manager(app.app)
 
 
 @manager.command
-def load_manifest(manifest, mcbench_client=mcbench_client):
+def load_manifest(manifest, mcbench_client=None):
+    if mcbench_client is None:
+        with app.app.app_context():
+            load_manifest(manifest, app.get_client())
+            return
+
+    mcbench_client.init_tables()
     with open(manifest) as f:
         manifest = json.load(f)
         for project in manifest['projects']:

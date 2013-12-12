@@ -1,7 +1,5 @@
 import unittest
 
-import fakeredis
-
 import manage
 import mcbench.client
 import mcbench.xpath
@@ -9,12 +7,11 @@ import mcbench.xpath
 
 class McBenchTestCase(unittest.TestCase):
     def setUp(self):
-        self.redis = fakeredis.FakeStrictRedis()
-        self.client = mcbench.client.McBenchClient(self.redis, 'testdata')
+        self.client = mcbench.client.create('testdata', ':memory:')
         manage.load_manifest('testdata/manifest.json', self.client)
 
     def tearDown(self):
-        self.redis.flushdb()
+        self.client.close()
 
     def test_testdata_was_loaded_correctly(self):
         benchmarks = self.client.get_all_benchmarks()
