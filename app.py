@@ -64,7 +64,7 @@ def benchmark_list():
         return redirect('index', query=e.query)
 
     client = get_client()
-    all_benchmarks = get_client().get_all_benchmarks()
+    all_benchmarks = client.get_all_benchmarks()
 
     if query is None:
         return flask.render_template('list.html', benchmarks=all_benchmarks)
