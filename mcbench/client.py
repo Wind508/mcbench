@@ -141,6 +141,7 @@ class McBenchClient(object):
             (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
             itertools.imap(lambda p: (p.split(':')[0], query_id, p.split(':')[1]), results.split(',')))
         self.db.commit()
+        return query_id
 
     def delete_query(self, query_id):
         self.db.execute('delete from query where id=?', (query_id,))

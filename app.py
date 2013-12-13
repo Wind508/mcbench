@@ -122,9 +122,9 @@ def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
     results = flask.request.values['results']
-    get_client().insert_query(xpath, name, results)
+    query_id = get_client().insert_query(xpath, name, results)
     flask.flash("Query '%s' successfully saved." % name, 'info')
-    return redirect('index')
+    return redirect('benchmark_list', query=xpath, query_id=query_id)
 
 
 @app.route('/delete_query', methods=['POST'])
