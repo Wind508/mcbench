@@ -9,7 +9,7 @@ This [Matlab file exchange scraper][scraper] can be used to download Matlab
 code from the Matlab Central File Exchange, and tools from the
 [the McLab project][mclab] can be used to parse the code and serialize
 the resulting ASTs to XML. The scraper also outputs a manifest with metadata
-about each downloaded project; this is used to populate a small Redis instance
+about each downloaded project; this is used to populate a SQLite database
 that serves as an index.
 
 An instance of this application is running at http://mcbench.cs.mcgill.ca.
