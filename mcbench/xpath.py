@@ -123,9 +123,15 @@ def target(context):
     return context.context_node[0]
 
 
-@extension('ForStmt')
-def loopvar(context):
-    return context.context_node[0][0][0].get('nameId')
+@extension
+def loopvars(context):
+    node = context.context_node
+    loop_vars = []
+    while node is not None:
+        if node.tag == 'ForStmt':
+            loop_vars.append(node[0][0][0].get('nameId'))
+        node = node.getparent()
+    return loop_vars
 
 
 @extension

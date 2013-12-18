@@ -19,8 +19,9 @@
   <ul>
     <li>The <code>is_stmt()</code> and <code>is_expr()</code> predicates return whether the current node
     is a statement or an expression, respectively.</li>
-    <li>In the context of a <code>ForStmt</code>, <code>loopvar()</code> returns the name of the loop
-    variable as a string.</li>
+    <li><code>loopvars()</code> returns a sequence of the loop vars currently in scope. For example,
+    <code>//ForStmt[loopvars()='i']</code> finds all for loops where the loop variable is <code>i</code> (or
+    that are nested inside such for a loop).</li>
     <li>In the context of a <code>CellIndexExpr</code>, <code>DotExpr</code>, or <code>ParameterizedExpr</code>,
     <code>target()</code> returns the target (aka receiver) of the expression.</li>
     <li>In the context of an <code>AssignStmt</code>, <code>lhs()</code> and <code>rhs()</code> get at the
