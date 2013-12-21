@@ -86,6 +86,7 @@ def benchmark_list():
 
     return flask.render_template(
         'list.html',
+        show_save_query_form=saved_query is None,
         benchmarks=benchmarks,
         elapsed_time=elapsed_time,
         matches_by_benchmark=matches_by_benchmark,
