@@ -122,7 +122,9 @@ def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
     results = flask.request.values['results']
-    query_id = get_client().insert_query(xpath, name, results)
+    client = get_client()
+    query_id = client.insert_query(xpath, name)
+    client.set_query_results(query_id, results)
     flask.flash("Query '%s' successfully saved." % name, 'info')
     return redirect('benchmark_list', query=xpath, query_id=query_id)
 

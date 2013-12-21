@@ -41,13 +41,26 @@ def load_initial_queries(mcbench_client=None):
             load_initial_queries(app.get_client())
             return
 
-    all_benchmarks = mcbench_client.get_all_benchmarks()
     for name, xpath in EXAMPLE_QUERIES:
+        query_id = mcbench_client.insert_query(xpath, name)
+    refresh_query_results(mcbench_client)
+
+
+@manager.command
+def refresh_query_results(mcbench_client=None):
+    if mcbench_client is None:
+        with app.app.app_context():
+            refresh_query_results(app.get_client())
+            return
+
+    all_benchmarks = mcbench_client.get_all_benchmarks()
+    for query in mcbench_client.get_all_queries():
         benchmarks, matches_by_benchmark, num_matches = (
-            all_benchmarks.get_num_matches(xpath))
+            all_benchmarks.get_num_matches(query['xpath']))
         results = ','.join('%s:%s' % (b.id, matches_by_benchmark[b.name])
             for b in benchmarks)
-        mcbench_client.insert_query(xpath, name, results)
+        mcbench_client.set_query_results(query['id'], results)
+
 
 
 if __name__ == '__main__':

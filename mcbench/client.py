@@ -132,16 +132,20 @@ class McBenchClient(object):
             num_matches += int(row['num_matches'])
         return benchmarks, matches_by_benchmark, num_matches
 
-    def insert_query(self, xpath, name, results):
+    def insert_query(self, xpath, name):
         cursor = self.db.cursor()
         cursor.execute(
             'insert into query (name, xpath) values(?, ?)', (name, xpath))
-        query_id = cursor.lastrowid
+        self.db.commit()
+        return cursor.lastrowid
+
+    def set_query_results(self, query_id, results):
+        cursor = self.db.cursor()
+        cursor.execute('delete from query_results where query_id=?', (query_id,))
         cursor.executemany('''insert into query_results
             (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
             itertools.imap(lambda p: (p.split(':')[0], query_id, p.split(':')[1]), results.split(',')))
         self.db.commit()
-        return query_id
 
     def delete_query(self, query_id):
         self.db.execute('delete from query where id=?', (query_id,))
