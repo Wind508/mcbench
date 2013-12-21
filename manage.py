@@ -28,10 +28,12 @@ def load_manifest(manifest, mcbench_client=None):
             return
 
     mcbench_client.init_tables()
+    existing_benchmarks = [b.name for b in mcbench_client.get_all_benchmarks()]
     with open(manifest) as f:
         manifest = json.load(f)
         for project in manifest['projects']:
-            mcbench_client.insert_benchmark(project)
+            if project['name'] not in existing_benchmarks:
+                mcbench_client.insert_benchmark(project)
 
 
 @manager.command
