@@ -57,11 +57,8 @@ def refresh_query_results(mcbench_client=None):
 
     all_benchmarks = mcbench_client.get_all_benchmarks()
     for query in mcbench_client.get_all_queries():
-        benchmarks, matches_by_benchmark, num_matches = (
-            all_benchmarks.get_num_matches(query['xpath']))
-        results = ','.join('%s:%s' % (b.id, matches_by_benchmark[b.name])
-            for b in benchmarks)
-        mcbench_client.set_query_results(query['id'], results)
+        result = all_benchmarks.get_query_results(query['xpath'])
+        mcbench_client.set_query_results(query['id'], result)
 
 
 

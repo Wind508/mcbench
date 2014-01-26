@@ -69,28 +69,22 @@ def benchmark_list():
     if query is None:
         return flask.render_template('list.html', benchmarks=all_benchmarks)
 
-    saved_query = flask.request.args.get('query_id') or None
     start = time.time()
-    if saved_query is not None:
-        benchmarks, matches_by_benchmark, num_matches = (
-            client.get_saved_query_results(saved_query))
-    else:
-        try:
-            benchmarks, matches_by_benchmark, num_matches = (
-                all_benchmarks.get_num_matches(query))
-        except mcbench.xpath.XPathError as e:
-            flask.flash(str(e), 'error')
-            return redirect('index', query=e.query)
+    try:
+        result = client.get_query_results(query)
+    except mcbench.xpath.XPathError as e:
+        flask.flash(str(e), 'error')
+        return redirect('index', query=e.query)
     elapsed_time = time.time() - start
-    benchmarks.sort(key=lambda b: matches_by_benchmark[b.name], reverse=True)
+    result.sort_by_frequency()
 
     return flask.render_template(
         'list.html',
-        show_save_query_form=saved_query is None,
-        benchmarks=benchmarks,
+        show_save_query_form=not result.cached,
+        benchmarks=result.benchmarks,
         elapsed_time=elapsed_time,
-        matches_by_benchmark=matches_by_benchmark,
-        num_matches=num_matches,
+        matches_by_benchmark=result.matches_by_benchmark,
+        num_matches=result.num_matches,
         total_benchmarks=len(all_benchmarks))
 
 
@@ -125,7 +119,7 @@ def save_query():
     results = flask.request.values['results']
     client = get_client()
     query_id = client.insert_query(xpath, name)
-    client.set_query_results(query_id, results)
+    client.set_query_results_from_client_string(query_id, results)
     flask.flash("Query '%s' successfully saved." % name, 'info')
     return redirect('benchmark_list', query=xpath, query_id=query_id)
 

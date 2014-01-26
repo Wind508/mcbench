@@ -115,10 +115,15 @@ class McBenchClient(object):
     def get_all_queries(self):
         return list(self._fetch('select * from query'))
 
+    def get_query_results(self, xpath):
+        query = self._fetchone('select * from query where xpath=?', (xpath,))
+        if query is None:
+            return self.get_all_benchmarks().get_query_results(xpath)
+        else:
+            return self.get_saved_query_results(query['id'])
+
     def get_saved_query_results(self, query_id):
-        benchmarks = []
-        matches_by_benchmark = {}
-        num_matches = 0
+        result = mcbench.benchmark.QueryResult(cached=True)
         for row in self._fetch(
             '''select B.id, author, author_url, date_submitted, date_updated,
                       name, summary, tags, title, url, num_matches
@@ -126,11 +131,10 @@ class McBenchClient(object):
             join query_results as R
             on B.id = R.benchmark_id
             where query_id=?''', (query_id,)):
-            benchmarks.append(self._make_benchmark(
-                {k: row[k] for k in row.keys() if k != 'num_matches'}))
-            matches_by_benchmark[row['name']] = row['num_matches']
-            num_matches += int(row['num_matches'])
-        return benchmarks, matches_by_benchmark, num_matches
+            benchmark = self._make_benchmark(
+                {k: row[k] for k in row.keys() if k != 'num_matches'})
+            result.add_matching_benchmark(benchmark, row['num_matches'])
+        return result
 
     def insert_query(self, xpath, name):
         cursor = self.db.cursor()
@@ -144,7 +148,20 @@ class McBenchClient(object):
         cursor.execute('delete from query_results where query_id=?', (query_id,))
         cursor.executemany('''insert into query_results
             (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
-            itertools.imap(lambda p: (p.split(':')[0], query_id, p.split(':')[1]), results.split(',')))
+            results.as_db_rows())
+        self.db.commit()
+
+    # TODO(isbadawi): Get rid of this.
+    # (Could directly convert string to QueryResult, but that needs a list of
+    # benchmark objects, not ids.)
+    def set_query_results_from_client_string(self, query_id, string):
+        def make_row(part):
+            return (part.split(':')[0], query_id, part.split(':')[1])
+        cursor = self.db.cursor()
+        cursor.execute('delete from query_results where query_id=?', (query_id,))
+        cursor.executemany('''insert into query_results
+            (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
+            itertools.imap(make_row, string.split(',')))
         self.db.commit()
 
     def delete_query(self, query_id):

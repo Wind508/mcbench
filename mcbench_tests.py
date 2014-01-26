@@ -58,13 +58,13 @@ class McBenchClientTestCase(unittest.TestCase):
 
     def test_simple_query(self):
         benchmarks = self.client.get_all_benchmarks()
-        _, _, total_matches = benchmarks.get_num_matches('//ForStmt')
-        self.assertEqual(16, total_matches)
+        result = benchmarks.get_query_results('//ForStmt')
+        self.assertEqual(16, result.num_matches)
 
     def test_malformed_query(self):
         benchmarks = self.client.get_all_benchmarks()
         with self.assertRaises(mcbench.xpath.XPathError):
-            benchmarks.get_num_matches(r'\ForStmt')
+            benchmarks.get_query_results(r'\ForStmt')
 
 if __name__ == '__main__':
     unittest.main()
