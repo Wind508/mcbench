@@ -3,7 +3,6 @@ import json
 from flask.ext.script import Manager
 
 import app
-import mcbench.benchmark
 
 manager = Manager(app.app)
 

@@ -1,8 +1,8 @@
 import itertools
 import sqlite3
 
+from mcbench.benchmark import Benchmark, BenchmarkSet
 from mcbench.query import QueryResult
-import mcbench.benchmark
 
 
 class BenchmarkDoesNotExist(Exception):
@@ -69,11 +69,7 @@ class McBenchClient(object):
         data = dict(
             data, author=data['author'], summary=data['summary'],
             tags=data['tags'].split(','), title=data['title'])
-        return mcbench.benchmark.Benchmark(
-            data['id'], self.data_root, data=data)
-
-    def _make_benchmark_set(self, benchmarks):
-        return mcbench.benchmark.BenchmarkSet(self.data_root, benchmarks)
+        return Benchmark(data['id'], self.data_root, data=data)
 
     def get_benchmark_by_id(self, benchmark_id):
         benchmark = self._fetchone(
@@ -93,7 +89,7 @@ class McBenchClient(object):
             return False
 
     def get_all_benchmarks(self):
-        return self._make_benchmark_set(itertools.imap(
+        return BenchmarkSet(self.data_root, itertools.imap(
             self._make_benchmark, self._fetch('select * from benchmark')))
 
     def insert_benchmark(self, data):

@@ -42,7 +42,7 @@ def _map(benchmarks, query, data_root):
     pool.close()
     return results
 
- 
+
 def execute(query, benchmarks, data_root):
     result = QueryResult(cached=False)
     results = _map(benchmarks, query, data_root)
