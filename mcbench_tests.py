@@ -35,6 +35,10 @@ class McBenchAppTestCase(unittest.TestCase):
         params = urllib.urlencode({'query': query})
         return self.app.get('/list', query_string=params, follow_redirects=True)
 
+    def _search_benchmark_for(self, benchmark, query):
+        params = urllib.urlencode({'query': query})
+        return self.app.get('/benchmark/%s' % benchmark, query_string=params)
+
     def test_valid_query_on_list_page(self):
         response = self._search_for('//ForStmt')
         self.assertEqual(200, response.status_code)
@@ -54,6 +58,21 @@ class McBenchAppTestCase(unittest.TestCase):
     def test_eval_error_in_query_flashes_error(self):
         response = self._search_for(r'//ForStmt[badpredicate()]')
         self.assertEqual(200, response.status_code)
+        self.assertIn('XPathEvalError', response.data)
+
+    def test_benchmark_page_renders_without_errors(self):
+        self.assertEqual(200, self.app.get('/benchmark/1888-repmf').status_code)
+
+    def test_valid_query_on_benchmark_page(self):
+        response = self._search_benchmark_for('1888-repmf', '//IfStmt')
+        self.assertIn('Found 2 occurrences', response.data)
+
+    def test_syntax_error_in_benchmark_query_flashes_error(self):
+        response = self._search_benchmark_for('1888-repmf', r'\\ForStmt')
+        self.assertIn('XPathSyntaxError', response.data)
+
+    def test_eval_error_in_benchmark_query_flashes_error(self):
+        response = self._search_benchmark_for('1888-repmf', '//IfStmt[bad()]')
         self.assertIn('XPathEvalError', response.data)
 
 
