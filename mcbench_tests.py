@@ -66,5 +66,23 @@ class McBenchClientTestCase(unittest.TestCase):
         with self.assertRaises(mcbench.xpath.XPathError):
             benchmarks.get_query_results(r'\ForStmt')
 
+    def test_saving_query_caches_results(self):
+        results = self.client.get_query_results('//ForStmt')
+        query_id = self.client.insert_query('//ForStmt', 'For loops')
+        self.client.set_query_results(query_id, results)
+
+        results = self.client.get_query_results('//ForStmt')
+        self.assertTrue(results.cached)
+        self.assertEqual(16, results.num_matches)
+
+    def test_deleting_query_deletes_cached_results(self):
+        results = self.client.get_query_results('//ForStmt')
+        query_id = self.client.insert_query('//ForStmt', 'For loops')
+        self.client.set_query_results(query_id, results)
+        self.client.delete_query(query_id)
+
+        results = self.client.get_query_results('//ForStmt')
+        self.assertFalse(results.cached)
+
 if __name__ == '__main__':
     unittest.main()

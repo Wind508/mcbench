@@ -145,7 +145,7 @@ class McBenchClient(object):
         cursor.execute('delete from query_results where query_id=?', (query_id,))
         cursor.executemany('''insert into query_results
             (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
-            results.as_db_rows())
+            results.as_db_rows(query_id))
         self.db.commit()
 
     # TODO(isbadawi): Get rid of this.

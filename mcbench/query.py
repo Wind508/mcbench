@@ -19,7 +19,7 @@ class QueryResult(object):
 
     def as_db_rows(self, query_id):
         def make_row(benchmark):
-            num_matches = self.matches_by_benchmark(benchmark.name)
+            num_matches = self.matches_by_benchmark[benchmark.name]
             return (benchmark.id, query_id, num_matches)
         return itertools.imap(make_row, self.benchmarks)
 
