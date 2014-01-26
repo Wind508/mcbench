@@ -1,4 +1,5 @@
 import unittest
+import urllib
 
 import app
 import manage
@@ -29,6 +30,31 @@ class McBenchAppTestCase(unittest.TestCase):
 
     def test_list_page_renders_without_errors(self):
         self.assertEqual(200, self.app.get('/list').status_code)
+
+    def _search_for(self, query):
+        params = urllib.urlencode({'query': query})
+        return self.app.get('/list', query_string=params, follow_redirects=True)
+
+    def test_valid_query_on_list_page(self):
+        response = self._search_for('//ForStmt')
+        self.assertEqual(200, response.status_code)
+        self.assertIn('Found 16 occurrences', response.data)
+
+    def test_saved_query_on_list_page(self):
+        manage.load_initial_queries(app.get_client())
+        response = self._search_for("//ParameterizedExpr[is_call('eval')]")
+        self.assertEqual(200, response.status_code)
+        self.assertIn('Found 6 occurrences', response.data)
+
+    def test_syntax_error_in_query_flashes_error(self):
+        response = self._search_for(r'\\ForStmt')
+        self.assertEqual(200, response.status_code)
+        self.assertIn('XPathSyntaxError', response.data)
+
+    def test_eval_error_in_query_flashes_error(self):
+        response = self._search_for(r'//ForStmt[badpredicate()]')
+        self.assertEqual(200, response.status_code)
+        self.assertIn('XPathEvalError', response.data)
 
 
 class McBenchClientTestCase(unittest.TestCase):
