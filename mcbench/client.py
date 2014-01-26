@@ -1,6 +1,7 @@
 import itertools
 import sqlite3
 
+from mcbench.query import QueryResult
 import mcbench.benchmark
 
 
@@ -123,7 +124,7 @@ class McBenchClient(object):
             return self.get_saved_query_results(query['id'])
 
     def get_saved_query_results(self, query_id):
-        result = mcbench.benchmark.QueryResult(cached=True)
+        result = QueryResult(cached=True)
         for row in self._fetch(
             '''select B.id, author, author_url, date_submitted, date_updated,
                       name, summary, tags, title, url, num_matches

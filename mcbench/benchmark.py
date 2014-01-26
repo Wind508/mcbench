@@ -86,52 +86,10 @@ class Benchmark(object):
         return '<Benchmark: %s>' % self.name
 
 
-def get_num_matches_worker((id, data_root, name, query)):
-    return Benchmark(id, data_root, name).get_num_matches(query)
-
-
-class QueryResult(object):
-    def __init__(self, cached):
-        self.benchmarks = []
-        self.matches_by_benchmark = collections.defaultdict(int)
-        self.num_matches = 0
-        self.cached = cached
-
-    def add_matching_benchmark(self, benchmark, num_matches):
-        self.benchmarks.append(benchmark)
-        self.matches_by_benchmark[benchmark.name] = num_matches
-        self.num_matches += num_matches
-
-    def as_db_rows(self, query_id):
-        def make_row(benchmark):
-            num_matches = self.matches_by_benchmark(benchmark.name)
-            return (benchmark.id, query_id, num_matches)
-        return itertools.imap(make_row, self.benchmarks)
-
-    def _num_matches(self, benchmark):
-        return self.matches_by_benchmark[benchmark.name]
-
-    def sort_by_frequency(self):
-        self.benchmarks.sort(key=self._num_matches, reverse=True)
-
-
 class BenchmarkSet(list):
     def __init__(self, data_root, benchmarks):
         super(BenchmarkSet, self).__init__(benchmarks)
         self.data_root = data_root
 
-    def _map(self, query):
-        pool = multiprocessing.Pool(processes=32)
-        results = pool.map(
-            get_num_matches_worker,
-            ((b.id, self.data_root, b.name, query) for b in self))
-        pool.close()
-        return results
-
     def get_query_results(self, query):
-        result = QueryResult(cached=False)
-        results = self._map(query)
-        for benchmark, num_matches in itertools.izip(self, results):
-            if num_matches:
-                result.add_matching_benchmark(benchmark, num_matches)
-        return result
+        return mcbench.query.execute(query, self, self.data_root)
