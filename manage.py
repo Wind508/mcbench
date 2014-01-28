@@ -43,8 +43,8 @@ def load_initial_queries(mcbench_client=None):
             return
 
     for name, xpath in EXAMPLE_QUERIES:
-        query_id = mcbench_client.insert_query(xpath, name)
-    refresh_query_results(mcbench_client)
+        mcbench_client.get_query_results(xpath)
+        mcbench_client.save_query(xpath, name)
 
 
 @manager.command
@@ -54,12 +54,20 @@ def refresh_query_results(mcbench_client=None):
             refresh_query_results(app.get_client())
             return
 
-    all_benchmarks = mcbench_client.get_all_benchmarks()
     for query in mcbench_client.get_all_queries():
-        result = all_benchmarks.get_query_results(query['xpath'])
-        mcbench_client.set_query_results(query['id'], result)
+        mcbench_client.get_query_results(query['xpath'])
+        mcbench_client.save_query(query['xpath'], query['name'])
 
 
+@manager.command
+def purge_unsaved_queries(mcbench_client=None):
+    if mcbench_client is None:
+        with app.app.app_context():
+            purge_unsaved_queries(app.get_client())
+            return
+
+    for query in mcbench_client.get_unsaved_queries():
+        mcbench_client.delete_query(query['xpath'])
 
 if __name__ == '__main__':
     manager.run()

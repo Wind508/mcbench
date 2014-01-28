@@ -30,7 +30,7 @@
     <td>{{ query.name }}</td>
     <td><a href="{{ url_for('benchmark_list', query=query.xpath) }}">{{ query.xpath }}</a></td>
     <td>
-    <button name="id" type="submit" value="{{ query.id }}" class="btn btn-xs btn-danger">
+    <button name="xpath" type="submit" value="{{ query.xpath }}" class="btn btn-xs btn-danger">
       {{ utils.icon('trash', text='Delete') }}
     </button>
     </td>

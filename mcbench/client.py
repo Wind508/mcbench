@@ -43,7 +43,7 @@ class McBenchClient(object):
             create table if not exists query (
                 id integer not null primary key autoincrement,
                 name varchar(200) not null,
-                xpath varchar(500) not null
+                xpath varchar(500) not null unique
             );
 
             create table if not exists query_results (
@@ -70,11 +70,6 @@ class McBenchClient(object):
             data, author=data['author'], summary=data['summary'],
             tags=data['tags'].split(','), title=data['title'])
         return Benchmark(data['id'], self.data_root, data=data)
-
-    def get_benchmark_by_id(self, benchmark_id):
-        benchmark = self._fetchone(
-            'select * from benchmark where id=?', (benchmark_id,))
-        return self._make_benchmark(benchmark)
 
     def get_benchmark_by_name(self, name):
         benchmark = self._fetchone(
@@ -103,68 +98,70 @@ class McBenchClient(object):
             values (?, ?, ?, ?, ?, ?, ?, ?, ?)''', params)
         self.db.commit()
 
-    def get_query_by_id(self, query_id):
-        query = self._fetchone('select * from query where id=?', (query_id,))
-        if query is None:
-            raise QueryDoesNotExist
-        return query
-
     def get_all_queries(self):
         return list(self._fetch('select * from query'))
+
+    def get_saved_queries(self):
+        return list(self._fetch("select * from query where name != ''"))
+
+    def get_unsaved_queries(self):
+        return list(self._fetch("select * from query where name = ''"))
 
     def get_query_results(self, xpath):
         query = self._fetchone('select * from query where xpath=?', (xpath,))
         if query is None:
-            return self.get_all_benchmarks().get_query_results(xpath)
+            results = self.get_all_benchmarks().get_query_results(xpath)
+            self.insert_query(xpath, results)
+            return results
         else:
-            return self.get_saved_query_results(query['id'])
+            return self.get_saved_query_results(query)
 
-    def get_saved_query_results(self, query_id):
-        result = QueryResult(cached=True)
+    def get_saved_query_results(self, query):
+        result = QueryResult(cached=True, saved=bool(query['name']))
         for row in self._fetch(
             '''select B.id, author, author_url, date_submitted, date_updated,
                       name, summary, tags, title, url, num_matches
             from benchmark as B
             join query_results as R
             on B.id = R.benchmark_id
-            where query_id=?''', (query_id,)):
+            where query_id=?''', (query['id'],)):
             benchmark = self._make_benchmark(
                 {k: row[k] for k in row.keys() if k != 'num_matches'})
             result.add_matching_benchmark(benchmark, row['num_matches'])
         return result
 
-    def insert_query(self, xpath, name):
+    def insert_query(self, xpath, results):
         cursor = self.db.cursor()
-        cursor.execute(
-            'insert into query (name, xpath) values(?, ?)', (name, xpath))
-        self.db.commit()
-        return cursor.lastrowid
-
-    def set_query_results(self, query_id, results):
-        cursor = self.db.cursor()
-        cursor.execute('delete from query_results where query_id=?', (query_id,))
+        cursor.execute('insert into query(name, xpath) values(?, ?)', ('', xpath))
+        query_id = cursor.lastrowid
         cursor.executemany('''insert into query_results
             (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
             results.as_db_rows(query_id))
         self.db.commit()
 
-    # TODO(isbadawi): Get rid of this.
-    # (Could directly convert string to QueryResult, but that needs a list of
-    # benchmark objects, not ids.)
-    def set_query_results_from_client_string(self, query_id, string):
-        def make_row(part):
-            return (part.split(':')[0], query_id, part.split(':')[1])
+    def save_query(self, xpath, name):
         cursor = self.db.cursor()
-        cursor.execute('delete from query_results where query_id=?', (query_id,))
-        cursor.executemany('''insert into query_results
-            (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
-            itertools.imap(make_row, string.split(',')))
+        cursor.execute('update query set name=? where xpath=?', (name, xpath))
+        if cursor.rowcount != 1:
+            raise QueryDoesNotExist
         self.db.commit()
 
-    def delete_query(self, query_id):
-        self.db.execute('delete from query where id=?', (query_id,))
-        self.db.execute('delete from query_results where query_id=?', (query_id,))
+    def unsave_query(self, xpath):
+        query = self._fetchone('select * from query where xpath=?', (xpath,))
+        if query is None:
+            raise QueryDoesNotExist
+        self.db.execute("update query set name='' where xpath=?", (xpath,))
         self.db.commit()
+        return query
+
+    def delete_query(self, xpath):
+        query = self._fetchone('select * from query where xpath=?', (xpath,))
+        if query is None:
+            raise QueryDoesNotExist
+        self.db.execute('delete from query where id=?', (query['id'],))
+        self.db.execute('delete from query_results where query_id=?', (query['id'],))
+        self.db.commit()
+        return query
 
 
 def create(data_root, db_path):

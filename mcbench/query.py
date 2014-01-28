@@ -6,11 +6,12 @@ from .benchmark import Benchmark
 
 
 class QueryResult(object):
-    def __init__(self, cached):
+    def __init__(self, cached, saved=False):
         self.benchmarks = []
         self.matches_by_benchmark = collections.defaultdict(int)
         self.num_matches = 0
         self.cached = cached
+        self.saved = saved
 
     def add_matching_benchmark(self, benchmark, num_matches):
         self.benchmarks.append(benchmark)

@@ -41,7 +41,7 @@ def get_valid_query_or_throw():
 
 @app.route('/', methods=['GET'])
 def index():
-    queries = get_client().get_all_queries()
+    queries = get_client().get_saved_queries()
     return flask.render_template('index.html', queries=queries)
 
 
@@ -80,7 +80,7 @@ def benchmark_list():
 
     return flask.render_template(
         'list.html',
-        show_save_query_form=not result.cached,
+        show_save_query_form=not result.saved,
         benchmarks=result.benchmarks,
         elapsed_time=elapsed_time,
         matches_by_benchmark=result.matches_by_benchmark,
@@ -116,21 +116,22 @@ def benchmark(name):
 def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
-    results = flask.request.values['results']
-    client = get_client()
-    query_id = client.insert_query(xpath, name)
-    client.set_query_results_from_client_string(query_id, results)
-    flask.flash("Query '%s' successfully saved." % name, 'info')
-    return redirect('benchmark_list', query=xpath, query_id=query_id)
+    try:
+        get_client().save_query(xpath, name)
+        flask.flash("Query '%s' successfully saved." % name, 'info')
+    except mcbench.xpath.QueryDoesNotExist:
+        flask.flash('No such query exists!', 'error')
+    return redirect('benchmark_list', query=xpath)
 
 
 @app.route('/delete_query', methods=['POST'])
 def delete_query():
-    client = get_client()
-    query_id = flask.request.values['id']
-    query = client.get_query_by_id(query_id)
-    client.delete_query(query_id)
-    flask.flash("Query '%s' successfully deleted." % query['name'], 'info')
+    xpath = flask.request.values['xpath']
+    try:
+        query = get_client().unsave_query(xpath)
+        flask.flash("Query '%s' successfully deleted." % query['name'], 'info')
+    except mcbench.client.QueryDoesNotExist:
+        flask.flash('No such query exists!', 'error')
     return redirect('index')
 
 if __name__ == "__main__":

@@ -38,20 +38,21 @@ class TestMcBenchClient(object):
         with assert_raises(mcbench.xpath.XPathError):
             benchmarks.get_query_results(r'\ForStmt')
 
-    def test_saving_query_caches_results(self):
-        results = self.client.get_query_results('//ForStmt')
-        query_id = self.client.insert_query('//ForStmt', 'For loops')
-        self.client.set_query_results(query_id, results)
+    def test_running_query_caches_results(self):
+        original_results = self.client.get_query_results('//ForStmt')
+        self.client.save_query('//ForStmt', 'For loops')
 
-        results = self.client.get_query_results('//ForStmt')
-        ok_(results.cached)
-        eq_(16, results.num_matches)
+        cached_results = self.client.get_query_results('//ForStmt')
+        ok_(cached_results.cached)
+        ok_(cached_results.saved)
+        eq_(original_results.num_matches, cached_results.num_matches)
 
-    def test_deleting_query_deletes_cached_results(self):
-        results = self.client.get_query_results('//ForStmt')
-        query_id = self.client.insert_query('//ForStmt', 'For loops')
-        self.client.set_query_results(query_id, results)
-        self.client.delete_query(query_id)
+    def test_unsaving_query_keeps_cached_results(self):
+        original_results = self.client.get_query_results('//ForStmt')
+        self.client.save_query('//ForStmt', 'For loops')
+        self.client.unsave_query('//ForStmt')
 
-        results = self.client.get_query_results('//ForStmt')
-        ok_(not results.cached)
+        cached_results = self.client.get_query_results('//ForStmt')
+        ok_(cached_results.cached)
+        ok_(not cached_results.saved)
+        eq_(original_results.num_matches, cached_results.num_matches)
