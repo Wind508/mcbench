@@ -19,7 +19,7 @@ class XPathQuery(object):
         self.query = query
         self.compiled_query = compiled_query
 
-    def __call__(self, xml):
+    def execute(self, xml):
         try:
             return self.compiled_query(xml)
         except (lxml.etree.XPathError, UnexpectedContext) as e:

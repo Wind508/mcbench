@@ -43,7 +43,7 @@ class File(object):
 
     def get_matches(self, query):
         query = mcbench.xpath.compile(query)
-        return query(self._parse_xml())
+        return query.execute(self._parse_xml())
 
     def __repr__(self):
         return '<File: %s>' % self.name
