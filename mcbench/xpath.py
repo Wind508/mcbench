@@ -26,6 +26,10 @@ class XPathQuery(object):
             raise XPathError(self.query, e), None, sys.exc_info()[2]
 
 
+def parse_xml(xml):
+    return lxml.etree.XML(xml)
+
+
 def parse_xml_filename(filename):
     return lxml.etree.parse(filename)
 
