@@ -1,3 +1,5 @@
 *.pyc
 *.sqlite
 local_settings.py
+.coverage
+cover
