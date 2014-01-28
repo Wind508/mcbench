@@ -119,7 +119,7 @@ def save_query():
     try:
         get_client().save_query(xpath, name)
         flask.flash("Query '%s' successfully saved." % name, 'info')
-    except mcbench.xpath.QueryDoesNotExist:
+    except mcbench.client.QueryDoesNotExist:
         flask.flash('No such query exists!', 'error')
     return redirect('benchmark_list', query=xpath)
 

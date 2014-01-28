@@ -1,6 +1,4 @@
-import urllib
-
-from nose.tools import eq_, assert_in
+from nose.tools import eq_, assert_in, assert_not_in
 
 import app
 import manage
@@ -18,6 +16,24 @@ class TestMcBenchApp(object):
     def tearDown(self):
         self.context.pop()
 
+    def _get(self, path, **kwargs):
+        return self.app.get(path, query_string=kwargs, follow_redirects=True)
+
+    def _post(self, path, **kwargs):
+        return self.app.post(path, data=kwargs, follow_redirects=True)
+
+    def _search_for(self, query):
+        return self._get('/list', query=query)
+
+    def _search_benchmark_for(self, benchmark, query):
+        return self._get('/benchmark/%s' % benchmark, query=query)
+
+    def _save_query(self, xpath, name):
+        return self._post('/save_query', xpath=xpath, name=name)
+
+    def _delete_query(self, xpath):
+        return self._post('/delete_query', xpath=xpath)
+
     def test_index_page_renders_without_errors(self):
         eq_(200, self.app.get('/').status_code)
 
@@ -29,14 +45,6 @@ class TestMcBenchApp(object):
 
     def test_list_page_renders_without_errors(self):
         eq_(200, self.app.get('/list').status_code)
-
-    def _search_for(self, query):
-        params = urllib.urlencode({'query': query})
-        return self.app.get('/list', query_string=params, follow_redirects=True)
-
-    def _search_benchmark_for(self, benchmark, query):
-        params = urllib.urlencode({'query': query})
-        return self.app.get('/benchmark/%s' % benchmark, query_string=params)
 
     def test_valid_query_on_list_page(self):
         response = self._search_for('//ForStmt')
@@ -73,3 +81,41 @@ class TestMcBenchApp(object):
     def test_eval_error_in_benchmark_query_flashes_error(self):
         response = self._search_benchmark_for('1888-repmf', '//IfStmt[bad()]')
         assert_in('XPathEvalError', response.data)
+
+    def test_saving_non_cached_query_flashes_error(self):
+        response = self._save_query('//ForStmt', 'For loops')
+        assert_in('No such query', response.data)
+
+    def test_deleting_unsaved_query_flashes_error(self):
+        response = self._delete_query('//ForStmt')
+        assert_in('No such query', response.data)
+
+    def test_saved_query_appears_on_front_page(self):
+        self._search_for('//ForStmt')
+        self._save_query('//ForStmt', 'For loops')
+
+        response = self.app.get('/')
+        assert_in('//ForStmt', response.data)
+        assert_in('For loops', response.data)
+
+    def test_deleted_query_does_not_appear_on_front_page(self):
+        self._search_for('//ForStmt')
+        self._save_query('//ForStmt', 'For loops')
+        self._delete_query('//ForStmt')
+
+        response = self.app.get('/')
+        assert_not_in('//ForStmt', response.data)
+
+    def test_save_query_form_appears_for_uncached_query(self):
+        response = self._search_for('//ForStmt')
+        assert_in('Name this query', response.data)
+
+    def test_save_query_form_appears_for_cached_but_unsaved_query(self):
+        self._search_for('//ForStmt')
+        response = self._search_for('//ForStmt')
+        assert_in('Name this query', response.data)
+
+    def test_save_query_form_does_not_appear_for_saved_query(self):
+        self._search_for('//ForStmt')
+        response = self._save_query('//ForStmt', 'For loops')
+        assert_not_in('Name this query', response.data)
