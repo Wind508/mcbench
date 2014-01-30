@@ -15,14 +15,6 @@ class QueryResult(object):
         self.matches.append((benchmark, num_matches))
         self.total_matches += num_matches
 
-    def as_db_rows(self, query_id):
-        def make_row(match):
-            return (match[0].id, query_id, match[1])
-        return itertools.imap(make_row, self.matches)
-
-    def sort_by_frequency(self):
-        self.matches.sort(key=lambda m: m[1], reverse=True)
-
 
 def _get_num_matches_worker((id, data_root, name, query)):
     return Benchmark(id, data_root, name).get_num_matches(query)

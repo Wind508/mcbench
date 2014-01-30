@@ -76,12 +76,11 @@ def benchmark_list():
         flask.flash(str(e), 'error')
         return redirect('index', query=e.query)
     elapsed_time = time.time() - start
-    result.sort_by_frequency()
 
     return flask.render_template(
         'search.html',
         show_save_query_form=not result.saved,
-        matches=result.matches,
+        matches=sorted(result.matches, key=lambda m: m[1], reverse=True),
         query=query,
         elapsed_time=elapsed_time,
         total_matches=result.total_matches,

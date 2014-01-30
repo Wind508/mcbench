@@ -136,7 +136,7 @@ class McBenchClient(object):
         query_id = cursor.lastrowid
         cursor.executemany('''insert into query_results
             (benchmark_id, query_id, num_matches) values (?, ?, ?)''',
-            results.as_db_rows(query_id))
+            itertools.imap(lambda m: (m[0].id, query_id, m[1]), results.matches))
         self.db.commit()
 
     def save_query(self, xpath, name):
