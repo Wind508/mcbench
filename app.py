@@ -79,12 +79,12 @@ def benchmark_list():
     result.sort_by_frequency()
 
     return flask.render_template(
-        'list.html',
+        'search.html',
         show_save_query_form=not result.saved,
-        benchmarks=result.benchmarks,
+        matches=result.matches,
+        query=query,
         elapsed_time=elapsed_time,
-        matches_by_benchmark=result.matches_by_benchmark,
-        num_matches=result.num_matches,
+        total_matches=result.total_matches,
         total_benchmarks=len(all_benchmarks))
 
 

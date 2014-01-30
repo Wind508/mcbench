@@ -13,37 +13,17 @@
   <div class="row">
     <div class="span12">
     {{ utils.search_bar(url_for('benchmark_list')) }}
-{% with query = request.values.get('query', '') %}
-  {% if not query %}
   <h3>Found {{ utils.plural('benchmark', benchmarks|length) }}.</h3>
-  {% else %}
-  {% if show_save_query_form %}
-  <form method="post" action="{{ url_for('save_query') }}" class="form-inline" style="margin-top: 5px;">
-    <input name="name" type="text" class="form-control input-small"
-           placeholder="Name this query..." style="width: 20%" />
-    <input name="xpath" type="hidden" value="{{ query }}" />
-    <button type="submit" class="btn btn-danger btn-small">{{ utils.icon('floppy-save', text='Save') }}</span></button>
-  </form>
-  {% endif %}
-  <h3>Found {{ utils.plural('occurrence', num_matches) }}
-      across {{ utils.plural('benchmark', benchmarks|length) }}
-      (out of {{ total_benchmarks }}, {{ '%.2f%%'|format(100.0 * benchmarks|length / total_benchmarks)}})
-      ({{ '%.2f seconds'|format(elapsed_time) }}).</h3>
-  {% endif %}
-    {% for benchmark in benchmarks %}
+  {% for benchmark in benchmarks %}
     <div class="benchmark">
       {% if not loop.first %}<hr>{% endif %}
       <p>
-      <span class="title"><a href="{{ url_for('benchmark', name=benchmark.name, query=query) }}">{{ benchmark.title }}</a></span>
-      {% if query %}
-        ({{ utils.plural('occurrence', matches_by_benchmark[benchmark.name]) }})
-      {% endif %}
+      <span class="title"><a href="{{ url_for('benchmark', name=benchmark.name) }}">{{ benchmark.title }}</a></span>
       <span>&mdash; <a href="{{ benchmark.url }}">(view on file exchange)</a></span>
       </p>
       <p class="summary">{{ benchmark.summary }}</p>
     </div>
     {% endfor %}
   </div>
-{% endwith %}
 </div>
 {% endblock %}

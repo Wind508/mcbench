@@ -1,4 +1,3 @@
-import collections
 import itertools
 import multiprocessing
 
@@ -7,28 +6,22 @@ from .benchmark import Benchmark
 
 class QueryResult(object):
     def __init__(self, cached, saved=False):
-        self.benchmarks = []
-        self.matches_by_benchmark = collections.defaultdict(int)
-        self.num_matches = 0
+        self.matches = []
+        self.total_matches = 0
         self.cached = cached
         self.saved = saved
 
     def add_matching_benchmark(self, benchmark, num_matches):
-        self.benchmarks.append(benchmark)
-        self.matches_by_benchmark[benchmark.name] = num_matches
-        self.num_matches += num_matches
+        self.matches.append((benchmark, num_matches))
+        self.total_matches += num_matches
 
     def as_db_rows(self, query_id):
-        def make_row(benchmark):
-            num_matches = self.matches_by_benchmark[benchmark.name]
-            return (benchmark.id, query_id, num_matches)
-        return itertools.imap(make_row, self.benchmarks)
-
-    def _num_matches(self, benchmark):
-        return self.matches_by_benchmark[benchmark.name]
+        def make_row(match):
+            return (match[0].id, query_id, match[1])
+        return itertools.imap(make_row, self.matches)
 
     def sort_by_frequency(self):
-        self.benchmarks.sort(key=self._num_matches, reverse=True)
+        self.matches.sort(key=lambda m: m[1], reverse=True)
 
 
 def _get_num_matches_worker((id, data_root, name, query)):

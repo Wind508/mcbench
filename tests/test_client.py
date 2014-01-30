@@ -31,7 +31,7 @@ class TestMcBenchClient(object):
     def test_simple_query(self):
         benchmarks = self.client.get_all_benchmarks()
         result = benchmarks.get_query_results('//ForStmt')
-        eq_(16, result.num_matches)
+        eq_(16, result.total_matches)
 
     def test_malformed_query(self):
         benchmarks = self.client.get_all_benchmarks()
@@ -45,7 +45,7 @@ class TestMcBenchClient(object):
         cached_results = self.client.get_query_results('//ForStmt')
         ok_(cached_results.cached)
         ok_(cached_results.saved)
-        eq_(original_results.num_matches, cached_results.num_matches)
+        eq_(original_results.total_matches, cached_results.total_matches)
 
     def test_unsaving_query_keeps_cached_results(self):
         original_results = self.client.get_query_results('//ForStmt')
@@ -55,4 +55,4 @@ class TestMcBenchClient(object):
         cached_results = self.client.get_query_results('//ForStmt')
         ok_(cached_results.cached)
         ok_(not cached_results.saved)
-        eq_(original_results.num_matches, cached_results.num_matches)
+        eq_(original_results.total_matches, cached_results.total_matches)
