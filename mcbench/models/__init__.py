@@ -1,6 +1,6 @@
 import peewee
 
-db = peewee.SqliteDatabase(None)
+db = peewee.SqliteDatabase(None, threadlocals=True)
 
 
 class Model(peewee.Model):
