@@ -1,11 +1,14 @@
+import datetime
 import json
+import os
 
 from flask.ext.script import Manager
 
-import app
+from mcbench.models import Benchmark, Query, QueryMatch
+from mcbench import settings, querier
+from app import app
 
-manager = Manager(app.app)
-
+manager = Manager(app)
 
 EXAMPLE_QUERIES = (
     ('Calls to eval', "//ParameterizedExpr[is_call('eval')]"),
@@ -20,54 +23,58 @@ EXAMPLE_QUERIES = (
 
 
 @manager.command
-def load_manifest(manifest, mcbench_client=None):
-    if mcbench_client is None:
-        with app.app.app_context():
-            load_manifest(manifest, app.get_client())
-            return
+def create_tables():
+    Benchmark.create_table()
+    Query.create_table()
+    QueryMatch.create_table()
 
-    mcbench_client.init_tables()
-    existing_benchmarks = [b.name for b in mcbench_client.get_all_benchmarks()]
+
+@manager.command
+def drop_tables():
+    Benchmark.drop_table()
+    Query.drop_table()
+    QueryMatch.drop_table()
+
+
+def create_benchmark_from_manifest_entry(entry):
+    date_submitted = datetime.datetime.strptime(
+        entry['date_submitted'], '%d %b %Y')
+    date_updated = datetime.datetime.strptime(
+        entry['date_updated'], '%d %b %Y')
+    fields = dict(entry,
+                  date_submitted=date_submitted,
+                  date_updated=date_updated)
+    benchmark = Benchmark.create(**fields)
+
+
+@manager.command
+def load_manifest(manifest):
+    existing_benchmarks = set(b.name for b in Benchmark.all())
     with open(manifest) as f:
         manifest = json.load(f)
         for project in manifest['projects']:
             if project['name'] not in existing_benchmarks:
-                mcbench_client.insert_benchmark(project)
+                create_benchmark_from_manifest_entry(project)
 
 
 @manager.command
-def load_initial_queries(mcbench_client=None):
-    if mcbench_client is None:
-        with app.app.app_context():
-            load_initial_queries(app.get_client())
-            return
-
+def load_initial_queries():
     for name, xpath in EXAMPLE_QUERIES:
-        mcbench_client.get_query_results(xpath)
-        mcbench_client.save_query(xpath, name)
+        query = Query.create(xpath=xpath, name=name)
+        query.cache_matches(querier.compute_matches(xpath))
 
 
 @manager.command
-def refresh_query_results(mcbench_client=None):
-    if mcbench_client is None:
-        with app.app.app_context():
-            refresh_query_results(app.get_client())
-            return
-
-    for query in mcbench_client.get_all_queries():
-        mcbench_client.get_query_results(query['xpath'])
-        mcbench_client.save_query(query['xpath'], query['name'])
+def refresh_query_results():
+    for query in Query.all():
+        query.expire_matches()
+        query.cache_matches(querier.compute_matches(query.xpath))
 
 
 @manager.command
-def purge_unsaved_queries(mcbench_client=None):
-    if mcbench_client is None:
-        with app.app.app_context():
-            purge_unsaved_queries(app.get_client())
-            return
-
-    for query in mcbench_client.get_unsaved_queries():
-        mcbench_client.delete_query(query['xpath'])
+def purge_unsaved_queries():
+    for query in Query.unsaved():
+        query.delete_instance()
 
 if __name__ == '__main__':
     manager.run()

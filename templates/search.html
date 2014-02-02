@@ -25,7 +25,9 @@
       across {{ utils.plural('benchmark', matches|length) }}
       (out of {{ total_benchmarks }}, {{ '%.2f%%'|format(100.0 * matches|length / total_benchmarks)}})
       ({{ '%.2f seconds'|format(elapsed_time) }}).</h3>
-    {% for benchmark, num_matches in matches %}
+    {% for match in matches %}
+    {% with benchmark =  match.benchmark %}
+    {% with num_matches = match.num_matches %}
     <div class="benchmark">
       {% if not loop.first %}<hr>{% endif %}
       <p>
@@ -35,6 +37,8 @@
       </p>
       <p class="summary">{{ benchmark.summary }}</p>
     </div>
+    {% endwith %}
+    {% endwith %}
     {% endfor %}
   </div>
 </div>

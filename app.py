@@ -2,29 +2,16 @@ import time
 
 import flask
 
-import mcbench.client
 import mcbench.highlighters
 import mcbench.xpath
+from mcbench import querier
+from mcbench.models import db, Benchmark, Query
 
 app = flask.Flask(__name__)
-app.config.from_object('settings')
+app.config.from_object('mcbench.settings')
 app.jinja_env.filters['highlight_matlab'] = mcbench.highlighters.matlab
 app.jinja_env.filters['highlight_xml'] = mcbench.highlighters.xml
-
-
-def get_client():
-    client = flask.g.get('client', None)
-    if client is None:
-        flask.g.client = client = mcbench.client.create(
-            app.config['DATA_ROOT'], app.config['DB_PATH'])
-    return client
-
-
-@app.teardown_appcontext
-def teardown_client(exception):
-    client = flask.g.get('client', None)
-    if client is not None:
-        client.close()
+db.init(app.config['DB_PATH'])
 
 
 def redirect(url_name, *args, **kwargs):
@@ -32,17 +19,16 @@ def redirect(url_name, *args, **kwargs):
 
 
 def get_valid_query_or_throw():
-    query = flask.request.args.get('query') or None
-    if query is None:
+    xpath = flask.request.args.get('query') or None
+    if xpath is None:
         return None
-    mcbench.xpath.compile(query)
-    return query
+    mcbench.xpath.compile(xpath)
+    return xpath
 
 
 @app.route('/', methods=['GET'])
 def index():
-    queries = get_client().get_saved_queries()
-    return flask.render_template('index.html', queries=queries)
+    return flask.render_template('index.html', queries=Query.saved())
 
 
 @app.route('/help', methods=['GET'])
@@ -58,20 +44,18 @@ def about():
 @app.route('/list', methods=['GET'])
 def benchmark_list():
     try:
-        query = get_valid_query_or_throw()
+        xpath = get_valid_query_or_throw()
     except mcbench.xpath.XPathError as e:
         flask.flash(str(e), 'error')
         return redirect('index', query=e.query)
 
-    client = get_client()
-    all_benchmarks = client.get_all_benchmarks()
-
-    if query is None:
-        return flask.render_template('list.html', benchmarks=all_benchmarks)
+    if xpath is None:
+        benchmarks = list(Benchmark.all())
+        return flask.render_template('list.html', benchmarks=benchmarks)
 
     start = time.time()
     try:
-        result = client.get_query_results(query)
+        matches = querier.get_matches(xpath)
     except mcbench.xpath.XPathError as e:
         flask.flash(str(e), 'error')
         return redirect('index', query=e.query)
@@ -79,35 +63,34 @@ def benchmark_list():
 
     return flask.render_template(
         'search.html',
-        show_save_query_form=not result.saved,
-        matches=sorted(result.matches, key=lambda m: m[1], reverse=True),
-        query=query,
+        show_save_query_form=not Query.find_by_xpath(xpath).is_saved,
+        matches=matches,
+        query=xpath,
         elapsed_time=elapsed_time,
-        total_matches=result.total_matches,
-        total_benchmarks=len(all_benchmarks))
+        total_matches=sum(m.num_matches for m in matches),
+        total_benchmarks=Benchmark.count())
 
 
 @app.route('/benchmark/<name>', methods=['GET'])
 def benchmark(name):
-    benchmark = get_client().get_benchmark_by_name(name)
+    benchmark = Benchmark.find_by_name(name)
 
     try:
         query = get_valid_query_or_throw()
-        hl_lines = benchmark.get_matching_lines(query)
+        hl_lines = querier.matching_lines(benchmark, query)
     except mcbench.xpath.XPathError as e:
         flask.flash(str(e), 'error')
         query = None
-        hl_lines = benchmark.get_matching_lines(None)
+        hl_lines = querier.matching_lines(benchmark, None)
 
-    files = list(benchmark.get_files())
     num_matches = sum(len(v['m']) for v in hl_lines.values())
 
     return flask.render_template(
         'benchmark.html',
         benchmark=benchmark,
+        files=list(benchmark.files),
         hl_lines=hl_lines,
         num_matches=num_matches,
-        files=files,
     )
 
 
@@ -115,22 +98,28 @@ def benchmark(name):
 def save_query():
     xpath = flask.request.values['xpath']
     name = flask.request.values['name']
-    try:
-        get_client().save_query(xpath, name)
-        flask.flash("Query '%s' successfully saved." % name, 'info')
-    except mcbench.client.QueryDoesNotExist:
+
+    query = Query.find_by_xpath(xpath)
+    if query is None:
         flask.flash('No such query exists!', 'error')
+    else:
+        query.name = name
+        query.save()
+        flask.flash("Query '%s' successfully saved." % name, 'info')
     return redirect('benchmark_list', query=xpath)
 
 
 @app.route('/delete_query', methods=['POST'])
 def delete_query():
     xpath = flask.request.values['xpath']
-    try:
-        query = get_client().unsave_query(xpath)
-        flask.flash("Query '%s' successfully deleted." % query['name'], 'info')
-    except mcbench.client.QueryDoesNotExist:
+
+    query = Query.find_by_xpath(xpath)
+    if query is None:
         flask.flash('No such query exists!', 'error')
+    else:
+        name = query.name
+        query.unsave()
+        flask.flash("Query '%s' successfully deleted." % name, 'info')
     return redirect('index')
 
 if __name__ == "__main__":

@@ -3,18 +3,18 @@ from nose.tools import eq_, assert_in, assert_not_in
 import app
 import manage
 
+from mcbench.models import db
+
 
 class TestMcBenchApp(object):
-    def setUp(self):
-        app.app.config['DB_PATH'] = ':memory:'
-        app.app.config['TESTING'] = True
-        self.context = app.app.app_context()
-        self.context.push()
+    def setup(self):
         self.app = app.app.test_client()
-        manage.load_manifest('testdata/manifest.json', app.get_client())
+        db.init(':memory:')
+        manage.create_tables()
+        manage.load_manifest('testdata/manifest.json')
 
-    def tearDown(self):
-        self.context.pop()
+    def teardown(self):
+        manage.drop_tables()
 
     def _get(self, path, **kwargs):
         return self.app.get(path, query_string=kwargs, follow_redirects=True)
@@ -52,7 +52,7 @@ class TestMcBenchApp(object):
         assert_in('Found 16 occurrences', response.data)
 
     def test_saved_query_on_list_page(self):
-        manage.load_initial_queries(app.get_client())
+        manage.load_initial_queries()
         response = self._search_for("//ParameterizedExpr[is_call('eval')]")
         eq_(200, response.status_code)
         assert_in('Found 6 occurrences', response.data)
