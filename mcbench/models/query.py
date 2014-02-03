@@ -1,6 +1,6 @@
 import peewee
 
-from . import Model, Benchmark
+from . import db, Model, Benchmark
 
 
 class Query(Model):
@@ -35,10 +35,13 @@ class Query(Model):
         QueryMatch.delete().where(QueryMatch.query == self).execute()
 
     def cache_matches(self, matches):
+        db.set_autocommit(False)
         for benchmark, num_matches in matches:
             QueryMatch.create(query=self,
                               benchmark=benchmark,
                               num_matches=num_matches)
+        db.commit()
+        db.set_autocommit(True)
 
     def get_cached_matches(self):
         return list(self.querymatch_set.order_by(
