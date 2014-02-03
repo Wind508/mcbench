@@ -34,14 +34,12 @@ class Query(Model):
     def expire_matches(self):
         QueryMatch.delete().where(QueryMatch.query == self).execute()
 
+    @db.commit_on_success
     def cache_matches(self, matches):
-        db.set_autocommit(False)
         for benchmark, num_matches in matches:
             QueryMatch.create(query=self,
                               benchmark=benchmark,
                               num_matches=num_matches)
-        db.commit()
-        db.set_autocommit(True)
 
     def get_cached_matches(self):
         return list(self.querymatch_set.order_by(
