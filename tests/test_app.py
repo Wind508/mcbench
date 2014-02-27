@@ -1,14 +1,13 @@
 from nose.tools import eq_, assert_in, assert_not_in
 
-import app
 import manage
-
+from mcbench import app
 from mcbench.models import db
 
 
 class TestMcBenchApp(object):
     def setup(self):
-        self.app = app.app.test_client()
+        self.app = app.test_client()
         db.init(':memory:')
         manage.create_tables()
         manage.load_manifest('testdata/manifest.json')

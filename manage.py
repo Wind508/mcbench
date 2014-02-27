@@ -6,7 +6,7 @@ from flask.ext.script import Manager
 
 from mcbench.models import Benchmark, Query, QueryMatch
 from mcbench import settings, querier
-from app import app
+from mcbench import app
 
 manager = Manager(app)
 
