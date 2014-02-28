@@ -3,3 +3,6 @@
 local_settings.py
 .coverage
 cover
+bower_components
+gen
+.webassets-cache

@@ -4,3 +4,6 @@ Pygments==1.6
 chardet==2.1.1
 lxml==3.2.3
 peewee==2.2.0
+Flask-Assets==0.8
+cssmin==0.2.0
+jsmin==2.0.9

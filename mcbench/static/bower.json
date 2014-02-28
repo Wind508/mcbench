@@ -1,0 +1,16 @@
+{
+  "name": "mcbench",
+  "version": "0.0.0",
+  "homepage": "https://github.com/isbadawi/mcbench",
+  "authors": [
+    "Ismail Badawi <ismail@badawi.io>"
+  ],
+  "description": "Run XPath queries against MATLAB ASTs",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "~3.1.0",
+    "bootbox": "~4.1.0",
+    "jquery": "~2.1.0"
+  }
+}

@@ -8,7 +8,9 @@
 
     <title>{% block title %}McBench{% endblock %}</title>
 
-    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+    {% assets 'css_all' -%}
+    <link href="{{ ASSET_URL }}" rel="stylesheet">
+    {% endassets %}
 
     <style>
       body {margin-top: 60px;}
@@ -65,8 +67,9 @@
     {% block content %}
     {% endblock %}
 
-    <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    {% assets 'js_all' -%}
+    <script src={{ ASSET_URL }}"></script>
+    {% endassets %}
 
     {% block extrajs %}
     {% endblock %}
