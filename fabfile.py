@@ -26,3 +26,7 @@ def coverage():
         '--cover-package=app,manage,mcbench'
     ]
     local('nosetests ' + ' '.join(nose_flags))
+
+
+def up():
+    local('python manage.py runserver')
