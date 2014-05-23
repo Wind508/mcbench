@@ -1,5 +1,8 @@
 language: python
 python:
   - "2.7"
-install: "pip install -r dev-requirements.txt"
-script: "fab test"
+install:
+  - npm install -g bower
+  - cd mcbench/static && bower install
+  - pip install -r dev-requirements.txt
+script: fab test
