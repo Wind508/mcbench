@@ -3,6 +3,6 @@ python:
   - "2.7"
 install:
   - npm install -g bower
-  - cd mcbench/static && bower install
+  - (cd mcbench/static && bower install)
   - pip install -r dev-requirements.txt
 script: fab test
