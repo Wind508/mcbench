@@ -19,6 +19,7 @@
        but describes XPath 2.0. (For example, many of the functions it describes won't work here.)</li>
   <li>This file describes the <a href="https://raw.github.com/Sable/mclab/develop/languages/Natlab/src/natlab.ast">structure of the Matlab AST</a>. Within each benchmark, each file has an XML tab which contains a pretty-printed view of the XML AST; this can help you devise queries.</li>
   </ul>
+
   <h3>Extensions</h3>
   <p>McBench introduces some XPath extensions to make queries more convenient.<p>
   <ul>
@@ -26,7 +27,7 @@
     is a statement or an expression, respectively.</li>
     <li><code>loopvars()</code> returns a sequence of the loop vars currently in scope. For example,
     <code>//ForStmt[loopvars()='i']</code> finds all for loops where the loop variable is <code>i</code> (or
-    that are nested inside such for a loop).</li>
+    that are nested inside such a for loop).</li>
     <li>In the context of a <code>CellIndexExpr</code>, <code>DotExpr</code>, or <code>ParameterizedExpr</code>,
     <code>target()</code> returns the target (aka receiver) of the expression.</li>
     <li>In the context of an <code>AssignStmt</code>, <code>lhs()</code> and <code>rhs()</code> get at the
@@ -48,6 +49,18 @@
     </ul>
     </li>
   </ul>
+
+  <h3>FAQ</h3>
+  <dl>
+    <dt>Where do these benchmarks come from?</dt>
+    <dl>All the benchmarks were downloaded from the <a href="http://www.mathworks.com/matlabcentral/fileexchange">
+        MatlabCentral File Exchange</a> using <a href="https://github.com/isbadawi/matlab-file-exchange-scraper">
+        this scraping script</a>. They are a mix of the most popular and highest rated projects.</dl>
+    <dt>Sometimes the highlighted lines are missing, or off by a few lines, or completely irrelevant.</dt>
+    <dd>McBench relies on the position information reported by the McLab toolkit's MATLAB parser in order to correlate
+    search results with lines of code. Unfortunately, a couple of long standing bugs in the parser
+  lead to inaccurate line numbers being reported in some cases.</dd>
+  </dl>
   </div>
 </div>
 {% endblock %}
