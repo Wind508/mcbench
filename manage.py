@@ -16,7 +16,7 @@ EXAMPLE_QUERIES = (
      "//ParameterizedExpr[is_call('feval') and name(arg(1))='StringLiteralExpr']"),
     ('Copy statements inside loops',
      "//ForStmt//AssignStmt[name(lhs())='NameExpr' and name(rhs())='NameExpr' and rhs()/@kind='VAR']"),
-    ('Recursive calls', '//ParameterizedExpr[is_call(ancestor::Function/@name)]'),
+    ('Recursive calls', '//ParameterizedExpr[is_call(ancestor::Function/Name/@nameId)]'),
     ('Functions with multiple return values',
      "//Function[./OutputParamList[count(Name) > 1]]")
 )

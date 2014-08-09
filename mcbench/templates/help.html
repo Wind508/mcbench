@@ -42,7 +42,7 @@
       <li><code>//ParameterizedExpr[is_call()]</code> selects all function calls.</li>
       <li><code>//ParameterizedExpr[is_call('eval', 'feval')]</code> selects all calls
       to either <code>eval</code> or <code>feval</code>.</li>
-      <li><code>//ParameterizedExpr[is_call(ancestor::Function/@name)]</code> selects
+      <li><code>//ParameterizedExpr[is_call(ancestor::Function/Name/@nameId)]</code> selects
       all calls to functions that are ancestors of the call. In the simplest case this means
       recursive calls; in the presence of nested functions, it could either the nested function
       or the enclosing function.</li>
