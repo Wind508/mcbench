@@ -34,6 +34,7 @@ def _map(benchmarks, query):
     results = pool.map(_num_matches_worker,
                        ((b.name, query) for b in benchmarks))
     pool.close()
+    pool.join()
     return results
 
 
