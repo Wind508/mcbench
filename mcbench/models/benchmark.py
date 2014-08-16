@@ -1,4 +1,4 @@
-import os
+import pathlib
 
 import chardet
 import peewee
@@ -31,13 +31,13 @@ class Benchmark(Model):
         return Benchmark.select().where(Benchmark.name == name).first()
 
     @property
+    def root(self):
+        return pathlib.Path(settings.DATA_ROOT, self.name)
+
+    @property
     def files(self):
-        root = os.path.join(settings.DATA_ROOT, self.name)
-        for dirpath, _, files in os.walk(root):
-            for file in files:
-                base, ext = os.path.splitext(file)
-                if ext == '.m':
-                    yield File(dirpath, base)
+        for path in self.root.glob('**/*.m'):
+            yield File(path.with_name(path.stem))
 
 
 def fix_utf8(s):
@@ -54,22 +54,16 @@ def fix_utf8(s):
 
 
 class File(object):
-    def __init__(self, root, name):
-        self.root = root
-        self.name = name
-
-    @property
-    def matlab_path(self):
-        return os.path.join(self.root, '%s.m' % self.name)
-
-    @property
-    def xml_path(self):
-        return os.path.join(self.root, '%s.xml' % self.name)
+    def __init__(self, path):
+        self.path = path
+        self.name = self.path.name
+        self.matlab_path = self.path.with_suffix('.m')
+        self.xml_path = self.path.with_suffix('.xml')
 
     def read_matlab(self):
-        with open(self.matlab_path, 'rb') as f:
+        with self.matlab_path.open('rb') as f:
             return fix_utf8(f.read())
 
     def read_xml(self):
-        with open(self.xml_path) as f:
+        with self.xml_path.open() as f:
             return f.read()

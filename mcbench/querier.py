@@ -8,7 +8,7 @@ from mcbench import settings
 
 def matches_in(xpath, file):
     xpath = mcbench.xpath.compile(xpath)
-    xml = mcbench.xpath.parse_xml_filename(file.xml_path)
+    xml = mcbench.xpath.parse_xml_filename(str(file.xml_path))
     return xpath.execute(xml)
 
 
