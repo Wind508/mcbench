@@ -23,7 +23,7 @@ class XPathQuery(object):
         try:
             return self.compiled_query(xml)
         except (lxml.etree.XPathError, UnexpectedContext) as e:
-            raise XPathError(self.query, e), None, sys.exc_info()[2]
+            raise XPathError(self.query, e) from e
 
 
 def parse_xml(xml):
@@ -38,7 +38,7 @@ def compile(query):
     try:
         return XPathQuery(query, lxml.etree.XPath(query))
     except lxml.etree.XPathError as e:
-        raise XPathError(query, e), None, sys.exc_info()[2]
+        raise XPathError(query, e) from e
 
 
 class UnexpectedContext(Exception):
@@ -94,7 +94,7 @@ def is_call(context, *names):
 
     # Could call this function like
     # is_call('eval') -> names is a string
-    if isinstance(names, basestring):
+    if isinstance(names, str):
         return called_name == names
     # is_call('eval', 'feval') -> names is a tuple of strings
     # is_call(//some/sequence) -> names[0] is a list of strings

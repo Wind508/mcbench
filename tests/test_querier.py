@@ -1,4 +1,4 @@
-from nose.tools import eq_, ok_, assert_items_equal, assert_raises
+from nose.tools import eq_, ok_, assert_raises
 
 import manage
 import mcbench.xpath

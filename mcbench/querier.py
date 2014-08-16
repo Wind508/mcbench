@@ -1,5 +1,4 @@
 import collections
-import itertools
 import multiprocessing
 
 import mcbench.xpath
@@ -24,7 +23,8 @@ def matching_lines(benchmark, xpath):
     return lines
 
 
-def _num_matches_worker((name, xpath)):
+def _num_matches_worker(args):
+    name, xpath = args
     benchmark = Benchmark(name=name)
     return sum(len(matches_in(xpath, file)) for file in benchmark.files)
 
@@ -41,7 +41,7 @@ def _map(benchmarks, query):
 def compute_matches(xpath):
     benchmarks = Benchmark.all()
     results = _map(benchmarks, xpath)
-    for benchmark, num_matches in itertools.izip(benchmarks, results):
+    for benchmark, num_matches in zip(benchmarks, results):
         if num_matches:
             yield benchmark, num_matches
 

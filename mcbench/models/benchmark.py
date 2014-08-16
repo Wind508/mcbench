@@ -43,14 +43,14 @@ class Benchmark(Model):
 def fix_utf8(s):
     encoding = chardet.detect(s)['encoding']
     try:
-        return unicode(s.decode(encoding))
+        return str(s.decode(encoding))
     except UnicodeDecodeError:
         # chardet seems to get the 2224-cost231-models files wrong;
         # it says windows-1255 but they're actually latin1 (according to vim).
         # This is an ugly workaround for this case.
         if encoding != 'windows-1255':
             raise
-        return unicode(s.decode('latin1'))
+        return str(s.decode('latin1'))
 
 
 class File(object):
@@ -67,7 +67,7 @@ class File(object):
         return os.path.join(self.root, '%s.xml' % self.name)
 
     def read_matlab(self):
-        with open(self.matlab_path) as f:
+        with open(self.matlab_path, 'rb') as f:
             return fix_utf8(f.read())
 
     def read_xml(self):
