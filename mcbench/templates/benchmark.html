@@ -21,7 +21,11 @@
 <div class="container">
   <ul class="nav nav-tabs" id="files-tabs">
   {% for file in files %}
-    <li><a href="#{{ loop.index }}">{{ file.name }}{% if hl_lines[file.name]['m'] %} ({{ hl_lines[file.name]['m']|length }}){% endif %}</a></li>
+    {% with matches = hl_lines[file.name]['m'] %}
+      <li><a {% if matches %}class="match"{% endif %} href="#{{ loop.index }}">
+        {{ file.name }}{% if matches %} ({{ matches|length }}){% endif %}
+      </a></li>
+    {% endwith %}
   {% endfor %}
   </ul>
 
@@ -50,6 +54,8 @@
 {% block extrajs %}
 <script>
 $(function() {
+  var matches;
+  var match_index;
   $('#files-tabs a').click(function (e) {
     e.preventDefault();
     $(this).tab('show');
@@ -58,8 +64,31 @@ $(function() {
   $('[id$="-languages"] a').click(function(e) {
     e.preventDefault();
     $(this).tab('show');
+    var id = $(this).attr('href').slice(1);
+    matches = $('#' + id + ' span.hll');
+    match_index = 0;
   });
-  $('#files-tabs a:first').trigger('click');
+  $(document).on('keypress', function (e) {
+    if (matches.length === 0) {
+      return;
+    }
+    switch (String.fromCharCode(e.keyCode)) {
+      case 'g': match_index = 0; break;
+      case 'G': match_index = matches.length - 1; break;
+      case 'n': match_index = (match_index + 1) % matches.length; break;
+      case 'N': match_index = (match_index - 1) % matches.length; break;
+      default: return;
+    }
+    matches.get(match_index).scrollIntoView();
+    // Hack to account for nav bar
+    window.scrollBy(0, -60);
+  });
+  var tabs = $('#files-tabs a');
+  var selected_tab = tabs.filter('.match').first();
+  if (selected_tab.length === 0) {
+    selected_tab = tabs.first();
+  }
+  selected_tab.trigger('click');
 });
 </script>
 {% endblock %}
